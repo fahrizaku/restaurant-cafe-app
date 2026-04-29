@@ -25,7 +25,7 @@
 					<tr class="border-b border-gray-100 dark:border-gray-800">
 						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">ID</th>
 						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Name</th>
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Total Orders</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Sessions</th>
 						<th class="px-5 py-3 text-right text-xs font-medium uppercase text-gray-400">Actions</th>
 					</tr>
 				</thead>
@@ -39,7 +39,7 @@
 							<tr class="border-b border-gray-100 last:border-0 dark:border-gray-800">
 								<td class="px-5 py-3 font-mono text-sm text-gray-500">{table.id}</td>
 								<td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-white">{table.name}</td>
-								<td class="px-5 py-3 text-sm text-gray-500">{table.orders.length}</td>
+								<td class="px-5 py-3 text-sm text-gray-500">{table.sessions.length}</td>
 								<td class="px-5 py-3">
 									<div class="flex items-center justify-end gap-2">
 										<a

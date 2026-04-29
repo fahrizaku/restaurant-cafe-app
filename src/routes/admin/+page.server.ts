@@ -3,25 +3,26 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ platform }) => {
 	if (!platform?.env.DB) {
-		return { stats: { menus: 0, categories: 0, orders: 0, tables: 0 }, recentOrders: [] };
+		return { stats: { menus: 0, categories: 0, openSessions: 0, tables: 0 }, recentSessions: [] };
 	}
 
 	const db = getDb(platform.env.DB);
 
-	const [menus, categories, orders, tables] = await Promise.all([
+	const [menus, categories, sessions, tables] = await Promise.all([
 		db.query.menus.findMany(),
 		db.query.categories.findMany(),
-		db.query.orders.findMany({ orderBy: (o, { desc }) => [desc(o.createdAt)], limit: 5, with: { table: true, items: true } }),
+		db.query.tableSessions.findMany({
+			orderBy: (s, { desc }) => [desc(s.openedAt)],
+			limit: 5,
+			with: { table: true, batches: { with: { items: true } } }
+		}),
 		db.query.tables.findMany()
 	]);
 
+	const openSessions = sessions.filter((s) => s.status === 'open').length;
+
 	return {
-		stats: {
-			menus: menus.length,
-			categories: categories.length,
-			orders: orders.length,
-			tables: tables.length
-		},
-		recentOrders: orders
+		stats: { menus: menus.length, categories: categories.length, openSessions, tables: tables.length },
+		recentSessions: sessions
 	};
 };

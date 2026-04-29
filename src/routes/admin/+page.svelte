@@ -1,12 +1,15 @@
 <script lang="ts">
 	let { data } = $props();
 
-	const statusColor: Record<string, string> = {
-		pending: 'bg-warning-50 text-warning-600',
-		processing: 'bg-brand-50 text-brand-500',
-		completed: 'bg-success-50 text-success-600',
-		cancelled: 'bg-error-50 text-error-500'
+	const paymentStatusStyle: Record<string, string> = {
+		unpaid: 'bg-warning-50 text-warning-600',
+		paid: 'bg-success-50 text-success-600'
 	};
+
+	function formatDate(date: Date | null) {
+		if (!date) return '-';
+		return new Date(date).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+	}
 </script>
 
 <div class="space-y-6">
@@ -40,12 +43,12 @@
 
 		<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
 			<div class="flex items-center justify-between">
-				<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Orders</span>
+				<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Open Sessions</span>
 				<span class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-500/10">
 					<svg class="fill-orange-500" width="20" height="20" viewBox="0 0 20 20" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.75 2.29248C10.75 1.87827 10.4143 1.54248 10 1.54248C9.58583 1.54248 9.25004 1.87827 9.25004 2.29248V2.83613C6.08266 3.20733 3.62504 5.9004 3.62504 9.16748V14.4591H3.33337C2.91916 14.4591 2.58337 14.7949 2.58337 15.2091C2.58337 15.6234 2.91916 15.9591 3.33337 15.9591H16.6667C17.0809 15.9591 17.4167 15.6234 17.4167 15.2091C17.4167 14.7949 17.0809 14.4591 16.6667 14.4591H16.375V9.16748C16.375 5.9004 13.9174 3.20733 10.75 2.83613V2.29248ZM14.875 14.4591V9.16748C14.875 6.47509 12.6924 4.29248 10 4.29248C7.30765 4.29248 5.12504 6.47509 5.12504 9.16748V14.4591H14.875ZM8.00004 17.7085C8.00004 18.1228 8.33583 18.4585 8.75004 18.4585H11.25C11.6643 18.4585 12 18.1228 12 17.7085C12 17.2943 11.6643 16.9585 11.25 16.9585H8.75004C8.33583 16.9585 8.00004 17.2943 8.00004 17.7085Z" fill=""/></svg>
 				</span>
 			</div>
-			<p class="mt-4 text-3xl font-semibold text-gray-800 dark:text-white">{data.stats.orders}</p>
+			<p class="mt-4 text-3xl font-semibold text-gray-800 dark:text-white">{data.stats.openSessions}</p>
 		</div>
 
 		<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
@@ -59,10 +62,10 @@
 		</div>
 	</div>
 
-	<!-- Recent Orders -->
+	<!-- Recent Sessions -->
 	<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
 		<div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-			<h2 class="text-base font-semibold text-gray-800 dark:text-white">Recent Orders</h2>
+			<h2 class="text-base font-semibold text-gray-800 dark:text-white">Recent Sessions</h2>
 			<a href="/admin/orders" class="text-sm text-brand-500 hover:text-brand-600">View all</a>
 		</div>
 
@@ -70,28 +73,32 @@
 			<table class="w-full">
 				<thead>
 					<tr class="border-b border-gray-100 dark:border-gray-800">
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Order ID</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Session</th>
 						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Table</th>
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Items</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Orders</th>
 						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Total</th>
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Status</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Opened</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Payment</th>
 					</tr>
 				</thead>
 				<tbody>
-					{#if data.recentOrders.length === 0}
+					{#if data.recentSessions.length === 0}
 						<tr>
-							<td colspan="5" class="px-5 py-8 text-center text-sm text-gray-400">No orders yet</td>
+							<td colspan="6" class="px-5 py-8 text-center text-sm text-gray-400">No sessions yet</td>
 						</tr>
 					{:else}
-						{#each data.recentOrders as order}
+						{#each data.recentSessions as session}
 							<tr class="border-b border-gray-100 last:border-0 dark:border-gray-800">
-								<td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300 font-mono">#{order.id.slice(0, 8)}</td>
-								<td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{order.table?.name ?? '-'}</td>
-								<td class="px-5 py-3 text-sm text-gray-500">{order.items?.length ?? 0} items</td>
-								<td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-white">${order.totalPrice.toFixed(2)}</td>
+								<td class="px-5 py-3 font-mono text-sm text-brand-500">
+									<a href="/admin/orders/{session.id}" class="hover:text-brand-600">#{session.id.slice(0, 8)}</a>
+								</td>
+								<td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{session.table?.name ?? '-'}</td>
+								<td class="px-5 py-3 text-sm text-gray-500">{session.batches.length} batch · {session.batches.reduce((s, b) => s + b.items.length, 0)} items</td>
+								<td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-white">${session.totalPrice.toFixed(2)}</td>
+								<td class="px-5 py-3 text-sm text-gray-500">{formatDate(session.openedAt)}</td>
 								<td class="px-5 py-3">
-									<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {statusColor[order.status] ?? ''}">
-										{order.status}
+									<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize {paymentStatusStyle[session.paymentStatus] ?? ''}">
+										{session.paymentStatus}
 									</span>
 								</td>
 							</tr>

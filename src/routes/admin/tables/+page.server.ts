@@ -9,7 +9,7 @@ export const load: PageServerLoad = async ({ platform }) => {
 	const db = getDb(platform.env.DB);
 	const all = await db.query.tables.findMany({
 		orderBy: (t, { asc }) => [asc(t.name)],
-		with: { orders: true }
+		with: { sessions: true }
 	});
 	return { tables: all };
 };
