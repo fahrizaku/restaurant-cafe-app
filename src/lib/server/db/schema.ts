@@ -1,7 +1,6 @@
 import { integer, sqliteTable, text, real } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
-// Categories for the menu
 export const categories = sqliteTable('categories', {
 	id: text('id')
 		.primaryKey()
@@ -15,7 +14,6 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 	menus: many(menus)
 }));
 
-// Menu items
 export const menus = sqliteTable('menus', {
 	id: text('id')
 		.primaryKey()
@@ -37,7 +35,6 @@ export const menusRelations = relations(menus, ({ one }) => ({
 	})
 }));
 
-// Restaurant Tables
 export const tables = sqliteTable('tables', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
@@ -45,45 +42,63 @@ export const tables = sqliteTable('tables', {
 });
 
 export const tablesRelations = relations(tables, ({ many }) => ({
-	orders: many(orders)
+	sessions: many(tableSessions)
 }));
 
-// Orders
-export const orders = sqliteTable('orders', {
+// Satu sesi per kunjungan meja. Bisa ada banyak batch order dalam satu sesi.
+export const tableSessions = sqliteTable('table_sessions', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	tableId: text('table_id')
 		.notNull()
 		.references(() => tables.id),
-	status: text('status', { enum: ['pending', 'processing', 'completed', 'cancelled'] })
-		.notNull()
-		.default('pending'),
-	paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] })
-		.notNull()
-		.default('unpaid'),
+	status: text('status', { enum: ['open', 'closed'] }).notNull().default('open'),
+	paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] }).notNull().default('unpaid'),
 	paymentMethod: text('payment_method', { enum: ['cash', 'qris', 'transfer'] }),
-	totalPrice: real('total_price').notNull(),
-	createdAt: integer('created_at', { mode: 'timestamp' })
-		.$defaultFn(() => new Date())
+	totalPrice: real('total_price').notNull().default(0),
+	openedAt: integer('opened_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+	closedAt: integer('closed_at', { mode: 'timestamp' })
 });
 
-export const ordersRelations = relations(orders, ({ one, many }) => ({
+export const tableSessionsRelations = relations(tableSessions, ({ one, many }) => ({
 	table: one(tables, {
-		fields: [orders.tableId],
+		fields: [tableSessions.tableId],
 		references: [tables.id]
+	}),
+	batches: many(orderBatches)
+}));
+
+// Setiap kali customer klik "Place Order" = 1 batch baru dalam sesi aktif
+export const orderBatches = sqliteTable('order_batches', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	sessionId: text('session_id')
+		.notNull()
+		.references(() => tableSessions.id),
+	status: text('status', { enum: ['pending', 'processing', 'done', 'cancelled'] })
+		.notNull()
+		.default('pending'),
+	totalPrice: real('total_price').notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
+});
+
+export const orderBatchesRelations = relations(orderBatches, ({ one, many }) => ({
+	session: one(tableSessions, {
+		fields: [orderBatches.sessionId],
+		references: [tableSessions.id]
 	}),
 	items: many(orderItems)
 }));
 
-// Items within an order
 export const orderItems = sqliteTable('order_items', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
-	orderId: text('order_id')
+	batchId: text('batch_id')
 		.notNull()
-		.references(() => orders.id),
+		.references(() => orderBatches.id),
 	menuId: text('menu_id')
 		.notNull()
 		.references(() => menus.id),
@@ -93,9 +108,9 @@ export const orderItems = sqliteTable('order_items', {
 });
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
-	order: one(orders, {
-		fields: [orderItems.orderId],
-		references: [orders.id]
+	batch: one(orderBatches, {
+		fields: [orderItems.batchId],
+		references: [orderBatches.id]
 	}),
 	menu: one(menus, {
 		fields: [orderItems.menuId],
