@@ -59,6 +59,10 @@ export const orders = sqliteTable('orders', {
 	status: text('status', { enum: ['pending', 'processing', 'completed', 'cancelled'] })
 		.notNull()
 		.default('pending'),
+	paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] })
+		.notNull()
+		.default('unpaid'),
+	paymentMethod: text('payment_method', { enum: ['cash', 'qris', 'transfer'] }),
 	totalPrice: real('total_price').notNull(),
 	createdAt: integer('created_at', { mode: 'timestamp' })
 		.$defaultFn(() => new Date())

@@ -35,5 +35,19 @@ export const actions: Actions = {
 		const db = getDb(platform.env.DB);
 		await db.update(orders).set({ status }).where(eq(orders.id, id));
 		return { success: true };
+	},
+
+	markPaid: async ({ request, platform }) => {
+		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
+
+		const data = await request.formData();
+		const id = data.get('id') as string;
+		const paymentMethod = data.get('paymentMethod') as typeof orders.$inferSelect.paymentMethod;
+
+		if (!id || !paymentMethod) return fail(400, { message: 'ID and payment method required' });
+
+		const db = getDb(platform.env.DB);
+		await db.update(orders).set({ paymentStatus: 'paid', paymentMethod }).where(eq(orders.id, id));
+		return { success: true };
 	}
 };
