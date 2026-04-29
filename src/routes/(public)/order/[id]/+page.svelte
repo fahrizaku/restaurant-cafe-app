@@ -16,6 +16,12 @@
 		completed: 'ri-checkbox-circle-line',
 		cancelled: 'ri-close-circle-line'
 	};
+
+	const paymentMethodLabel: Record<string, string> = {
+		cash: 'Cash',
+		qris: 'QRIS',
+		transfer: 'Bank Transfer'
+	};
 </script>
 
 <svelte:head>
@@ -68,6 +74,20 @@
 				<div class="order__total">
 					<span class="total-label">Total Amount</span>
 					<span class="total-value">${order.totalPrice.toFixed(2)}</span>
+				</div>
+
+				<div class="order__payment">
+					{#if order.paymentStatus === 'paid'}
+						<div class="payment-badge payment-badge--paid">
+							<i class="ri-checkbox-circle-fill"></i>
+							<span>Paid · {paymentMethodLabel[order.paymentMethod ?? ''] ?? order.paymentMethod}</span>
+						</div>
+					{:else}
+						<div class="payment-badge payment-badge--unpaid">
+							<i class="ri-time-line"></i>
+							<span>Payment pending — please pay at the cashier</span>
+						</div>
+					{/if}
 				</div>
 			</div>
 
@@ -218,6 +238,43 @@
 		align-items: center;
 		padding-top: 1rem;
 		border-top: 1px solid hsla(353, 16%, 32%, 0.1);
+	}
+
+	.order__payment {
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid hsla(353, 16%, 32%, 0.1);
+	}
+
+	.payment-badge {
+		display: inline-flex;
+		align-items: center;
+		column-gap: 0.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: 4rem;
+		font-size: var(--small-font-size);
+		font-weight: var(--font-medium);
+		width: 100%;
+		justify-content: center;
+	}
+
+	.payment-badge--paid {
+		background-color: hsla(142, 71%, 45%, 0.12);
+		color: #16a34a;
+	}
+
+	.payment-badge--paid i {
+		font-size: 1rem;
+		color: #16a34a;
+	}
+
+	.payment-badge--unpaid {
+		background-color: hsla(353, 16%, 32%, 0.08);
+		color: var(--text-color-light);
+	}
+
+	.payment-badge--unpaid i {
+		font-size: 1rem;
 	}
 
 	.total-label {
