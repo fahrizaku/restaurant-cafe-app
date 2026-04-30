@@ -128,7 +128,7 @@
 										{#if session.status === 'open' && session.paymentStatus === 'unpaid'}
 											<button
 												onclick={() => (payDialogSessionId = session.id)}
-												class="rounded-lg bg-success-50 px-3 py-1.5 text-xs font-medium text-success-600 hover:bg-success-100"
+												class="rounded-lg bg-success-500 px-3 py-2 text-sm font-medium text-white hover:bg-success-600"
 											>
 												Tandai Lunas
 											</button>
@@ -138,7 +138,7 @@
 											<form method="POST" action="?/completeSession" use:enhance={() => () => invalidateAll()}>
 												<input type="hidden" name="id" value={session.id} />
 												<button type="submit"
-													class="rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-500 hover:bg-brand-100">
+													class="rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600">
 													Sudah Diantar
 												</button>
 											</form>
@@ -149,7 +149,7 @@
 												<input type="hidden" name="id" value={session.id} />
 												<button
 													type="submit"
-													class="rounded-lg bg-error-50 px-3 py-1.5 text-xs font-medium text-error-500 hover:bg-error-100"
+													class="rounded-lg bg-error-500 px-3 py-2 text-sm font-medium text-white hover:bg-error-600"
 													onclick={(e) => { e.preventDefault(); const form = (e.currentTarget as HTMLButtonElement).closest('form') as HTMLFormElement; confirmDialog = { title: 'Batalkan sesi?', message: 'Sesi akan ditandai dibatalkan.', confirmLabel: 'Batalkan', confirmClass: 'bg-error-500 hover:bg-error-600', onConfirm: () => form.requestSubmit() }; }}
 												>
 													Batalkan
