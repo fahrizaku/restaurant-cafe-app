@@ -3,6 +3,13 @@
 	import { invalidateAll } from '$app/navigation';
 	import { formatRupiah } from '$lib/utils';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
+	import { Circle, UtensilsCrossed, CheckCircle2, Banknote, QrCode, Landmark } from 'lucide-svelte';
+
+	const paymentOptions = [
+		{ val: 'cash', label: 'Tunai', Icon: Banknote },
+		{ val: 'qris', label: 'QRIS', Icon: QrCode },
+		{ val: 'transfer', label: 'Transfer Bank', Icon: Landmark }
+	];
 
 	let { data } = $props();
 	const session = $derived(data.session);
@@ -43,11 +50,11 @@
 		<div class="ml-2 flex gap-2">
 			{#if session.status === 'open'}
 				<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-3 py-1 text-sm font-medium text-success-600">
-					<i class="ri-record-circle-fill text-[8px]"></i> Aktif
+					<Circle size={8} class="fill-current" /> Aktif
 				</span>
 			{:else if session.status === 'processing'}
 				<span class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-500">
-					<i class="ri-restaurant-line"></i> Diproses
+					<UtensilsCrossed size={12} /> Diproses
 				</span>
 			{:else if session.status === 'cancelled'}
 				<span class="inline-flex rounded-full bg-error-50 px-3 py-1 text-sm font-medium text-error-500">
@@ -60,7 +67,7 @@
 			{/if}
 			{#if session.paymentStatus === 'paid'}
 				<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-3 py-1 text-sm font-medium text-success-600">
-					<i class="ri-checkbox-circle-fill"></i> Lunas
+					<CheckCircle2 size={14} /> Lunas
 				</span>
 			{/if}
 		</div>
@@ -155,10 +162,10 @@
 					<form method="POST" action="?/markPaid" use:enhance class="space-y-3">
 						<fieldset class="space-y-2">
 							<legend class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Pilih Metode</legend>
-							{#each [['cash', 'Tunai', 'ri-money-dollar-circle-line'], ['qris', 'QRIS', 'ri-qr-code-line'], ['transfer', 'Transfer Bank', 'ri-bank-line']] as [val, label, icon]}
+							{#each paymentOptions as { val, label, Icon }}
 								<label class="flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors has-[:checked]:border-success-400 has-[:checked]:bg-success-50 border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/5">
 									<input type="radio" name="paymentMethod" value={val} class="accent-success-600" required />
-									<i class="{icon} text-base text-gray-500"></i>
+									<Icon size={16} class="text-gray-500" />
 									<span class="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
 								</label>
 							{/each}

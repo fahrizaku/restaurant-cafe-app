@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
 	import { formatRupiah } from '$lib/utils';
+	import { Info, ShoppingCart } from 'lucide-svelte';
 
 	let { data } = $props();
 
@@ -81,7 +82,7 @@
 	<!-- Session Info Banner -->
 	{#if activeSession}
 		<div class="flex items-center gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 dark:border-brand-500/20 dark:bg-brand-500/10">
-			<i class="ri-information-line text-brand-500"></i>
+			<Info size={16} class="text-brand-500 shrink-0" />
 			<p class="text-sm text-brand-700 dark:text-brand-400">
 				Sesi aktif — total sejauh ini:
 				<span class="font-semibold">{formatRupiah(activeSession.totalPrice)}</span>.
@@ -158,7 +159,7 @@
 
 			{#if cart.length === 0}
 				<div class="flex flex-1 flex-col items-center justify-center px-5 py-12 text-center">
-					<i class="ri-shopping-cart-line mb-2 text-3xl text-gray-300"></i>
+					<ShoppingCart size={36} class="mb-2 text-gray-300" />
 					<p class="text-sm text-gray-400">Belum ada item</p>
 					<p class="text-xs text-gray-300">Klik menu di sebelah kiri untuk menambahkan</p>
 				</div>
