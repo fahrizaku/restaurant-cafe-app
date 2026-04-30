@@ -2,8 +2,10 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { formatRupiah } from '$lib/utils';
+	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
 
 	let { data } = $props();
+	let confirmDialog = $state<{ title: string; message?: string; confirmLabel?: string; confirmClass?: string; onConfirm: () => void } | null>(null);
 
 	const statusTabs = [
 		{ value: null, label: 'Semua' },
@@ -148,7 +150,7 @@
 												<button
 													type="submit"
 													class="rounded-lg bg-error-50 px-3 py-1.5 text-xs font-medium text-error-500 hover:bg-error-100"
-													onclick={(e) => { if (!confirm('Batalkan sesi ini?')) e.preventDefault(); }}
+													onclick={(e) => { e.preventDefault(); const form = (e.currentTarget as HTMLButtonElement).closest('form') as HTMLFormElement; confirmDialog = { title: 'Batalkan sesi?', message: 'Sesi akan ditandai dibatalkan.', confirmLabel: 'Batalkan', confirmClass: 'bg-error-500 hover:bg-error-600', onConfirm: () => form.requestSubmit() }; }}
 												>
 													Batalkan
 												</button>
@@ -174,6 +176,17 @@
 		</div>
 	</div>
 </div>
+
+{#if confirmDialog}
+	<ConfirmDialog
+		title={confirmDialog.title}
+		message={confirmDialog.message}
+		confirmLabel={confirmDialog.confirmLabel}
+		confirmClass={confirmDialog.confirmClass}
+		onConfirm={() => { confirmDialog!.onConfirm(); confirmDialog = null; }}
+		onCancel={() => (confirmDialog = null)}
+	/>
+{/if}
 
 <!-- Dialog Tandai Lunas -->
 {#if payDialogSessionId}
