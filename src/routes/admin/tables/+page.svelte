@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
+
 	let { data } = $props();
 	let deletingId = $state<string | null>(null);
+	let confirmDialog = $state<{ title: string; message?: string; onConfirm: () => void } | null>(null);
 </script>
 
 <div class="space-y-6">
@@ -60,7 +63,7 @@
 												type="submit"
 												disabled={deletingId === table.id}
 												aria-label="Delete {table.name}"
-												onclick={(e) => { if (!confirm(`Delete "${table.name}"?`)) e.preventDefault(); }}
+												onclick={(e) => { e.preventDefault(); const form = (e.currentTarget as HTMLButtonElement).closest('form') as HTMLFormElement; confirmDialog = { title: `Hapus "${table.name}"?`, onConfirm: () => form.requestSubmit() }; }}
 												class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-error-500 hover:bg-error-50 dark:border-gray-800 dark:hover:bg-error-500/10"
 											>
 												<svg class="fill-current" width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -78,3 +81,13 @@
 		</div>
 	</div>
 </div>
+
+{#if confirmDialog}
+	<ConfirmDialog
+		title={confirmDialog.title}
+		message={confirmDialog.message}
+		confirmLabel="Hapus"
+		onConfirm={() => { confirmDialog!.onConfirm(); confirmDialog = null; }}
+		onCancel={() => (confirmDialog = null)}
+	/>
+{/if}

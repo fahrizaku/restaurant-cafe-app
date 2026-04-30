@@ -2,9 +2,11 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { formatRupiah } from '$lib/utils';
+	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
 
 	let { data } = $props();
 	const session = $derived(data.session);
+	let confirmDialog = $state<{ title: string; message?: string; confirmLabel?: string; confirmClass?: string; onConfirm: () => void } | null>(null);
 
 	const paymentMethodLabel: Record<string, string> = {
 		cash: 'Tunai', qris: 'QRIS', transfer: 'Transfer Bank'
@@ -191,7 +193,7 @@
 					<form method="POST" action="?/cancelSession" use:enhance={() => () => invalidateAll()}>
 						<button type="submit"
 							class="w-full rounded-xl border border-error-300 py-2.5 text-sm font-medium text-error-500 hover:bg-error-50 dark:border-error-500/30"
-							onclick={(e) => { if (!confirm('Batalkan sesi ini?')) e.preventDefault(); }}>
+							onclick={(e) => { e.preventDefault(); const form = (e.currentTarget as HTMLButtonElement).closest('form') as HTMLFormElement; confirmDialog = { title: 'Batalkan sesi?', message: 'Sesi akan ditandai dibatalkan.', confirmLabel: 'Batalkan', confirmClass: 'bg-error-500 hover:bg-error-600', onConfirm: () => form.requestSubmit() }; }}>
 							Batalkan Sesi
 						</button>
 					</form>
@@ -206,7 +208,7 @@
 					<form method="POST" action="?/reopenSession" use:enhance={() => () => invalidateAll()}>
 						<button type="submit"
 							class="w-full rounded-xl border border-warning-300 py-2.5 text-sm font-medium text-warning-600 hover:bg-warning-50 dark:border-warning-500/30 dark:text-warning-400"
-							onclick={(e) => { if (!confirm('Buka ulang sesi ini?')) e.preventDefault(); }}>
+							onclick={(e) => { e.preventDefault(); const form = (e.currentTarget as HTMLButtonElement).closest('form') as HTMLFormElement; confirmDialog = { title: 'Buka ulang sesi?', message: 'Status kembali ke aktif & belum bayar.', confirmLabel: 'Buka Ulang', confirmClass: 'bg-warning-500 hover:bg-warning-600', onConfirm: () => form.requestSubmit() }; }}>
 							Buka Ulang Sesi
 						</button>
 					</form>
@@ -215,3 +217,14 @@
 		</div>
 	</div>
 </div>
+
+{#if confirmDialog}
+	<ConfirmDialog
+		title={confirmDialog.title}
+		message={confirmDialog.message}
+		confirmLabel={confirmDialog.confirmLabel}
+		confirmClass={confirmDialog.confirmClass}
+		onConfirm={() => { confirmDialog!.onConfirm(); confirmDialog = null; }}
+		onCancel={() => (confirmDialog = null)}
+	/>
+{/if}

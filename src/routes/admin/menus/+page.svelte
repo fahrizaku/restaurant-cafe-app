@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { formatRupiah } from '$lib/utils';
+	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
 
 	let { data } = $props();
 	let deletingId = $state<string | null>(null);
+	let confirmDialog = $state<{ title: string; message?: string; onConfirm: () => void } | null>(null);
 </script>
 
 <div class="space-y-6">
@@ -99,7 +101,7 @@
 												class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-error-500 hover:bg-error-50 dark:border-gray-800 dark:hover:bg-error-500/10"
 												disabled={deletingId === menu.id}
 												aria-label="Hapus {menu.name}"
-												onclick={(e) => { if (!confirm(`Hapus "${menu.name}"?`)) e.preventDefault(); }}
+												onclick={(e) => { e.preventDefault(); const form = (e.currentTarget as HTMLButtonElement).closest('form') as HTMLFormElement; confirmDialog = { title: `Hapus "${menu.name}"?`, onConfirm: () => form.requestSubmit() }; }}
 											>
 												<svg class="fill-current" width="14" height="14" viewBox="0 0 24 24" fill="none">
 													<path fill-rule="evenodd" clip-rule="evenodd" d="M9 3.25C8.58579 3.25 8.25 3.58579 8.25 4V4.75H4C3.58579 4.75 3.25 5.08579 3.25 5.5C3.25 5.91421 3.58579 6.25 4 6.25H5.25V19C5.25 20.2426 6.25736 21.25 7.5 21.25H16.5C17.7426 21.25 18.75 20.2426 18.75 19V6.25H20C20.4142 6.25 20.75 5.91421 20.75 5.5C20.75 5.08579 20.4142 4.75 20 4.75H15.75V4C15.75 3.58579 15.4142 3.25 15 3.25H9ZM7.5 6.25H16.5V19C16.5 19.4142 16.1642 19.75 15.75 19.75H8.25C7.83579 19.75 7.5 19.4142 7.5 19V6.25ZM10 9.25C10.4142 9.25 10.75 9.58579 10.75 10V16C10.75 16.4142 10.4142 16.75 10 16.75C9.58579 16.75 9.25 16.4142 9.25 16V10C9.25 9.58579 9.58579 9.25 10 9.25ZM14.75 10C14.75 9.58579 14.4142 9.25 14 9.25C13.5858 9.25 13.25 9.58579 13.25 10V16C13.25 16.4142 13.5858 16.75 14 16.75C14.4142 16.75 14.75 16.4142 14.75 16V10Z" fill=""/>
@@ -116,3 +118,13 @@
 		</div>
 	</div>
 </div>
+
+{#if confirmDialog}
+	<ConfirmDialog
+		title={confirmDialog.title}
+		message={confirmDialog.message}
+		confirmLabel="Hapus"
+		onConfirm={() => { confirmDialog!.onConfirm(); confirmDialog = null; }}
+		onCancel={() => (confirmDialog = null)}
+	/>
+{/if}
