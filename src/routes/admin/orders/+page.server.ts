@@ -33,7 +33,9 @@ export const actions: Actions = {
 		if (!id || !paymentMethod) return fail(400, { message: 'ID and payment method required' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(tableSessions).set({ paymentStatus: 'paid', paymentMethod }).where(eq(tableSessions.id, id));
+		await db.update(tableSessions)
+			.set({ paymentStatus: 'paid', paymentMethod, status: 'closed', closedAt: new Date() })
+			.where(eq(tableSessions.id, id));
 		return { success: true };
 	},
 

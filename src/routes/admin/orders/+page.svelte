@@ -162,10 +162,11 @@
 		<div class="absolute inset-0 bg-black/40 backdrop-blur-sm" role="presentation" onclick={() => (payDialogSessionId = null)}></div>
 		<div class="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
 			<h2 class="mb-1 text-lg font-semibold text-gray-800 dark:text-white">Tandai Lunas</h2>
-			<p class="mb-5 text-sm text-gray-500">
+			<p class="mb-1 text-sm text-gray-500">
 				{target?.table?.name} — Total
 				<span class="font-semibold text-gray-800 dark:text-white">{formatRupiah(target?.totalPrice ?? 0)}</span>
 			</p>
+			<p class="mb-5 text-xs text-gray-400">Sesi akan otomatis ditutup setelah pembayaran dikonfirmasi.</p>
 
 			<form
 				method="POST"

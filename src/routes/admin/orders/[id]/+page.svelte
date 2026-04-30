@@ -194,7 +194,8 @@
 			<!-- Payment -->
 			{#if session.paymentStatus === 'unpaid' && session.status === 'open'}
 				<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-					<h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Pembayaran</h2>
+					<h2 class="mb-1 text-base font-semibold text-gray-800 dark:text-white">Pembayaran</h2>
+					<p class="mb-4 text-xs text-gray-400">Sesi akan otomatis ditutup setelah konfirmasi.</p>
 					<form method="POST" action="?/markPaid" use:enhance class="space-y-3">
 						<fieldset class="space-y-2">
 							<legend class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Pilih Metode</legend>
@@ -214,16 +215,31 @@
 				</div>
 			{/if}
 
-			<!-- Close Session -->
+			<!-- Close Session (tanpa pembayaran, untuk kasus darurat) -->
 			{#if session.status === 'open'}
 				<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
 					<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">Tutup Sesi</h2>
-					<p class="mb-4 text-sm text-gray-500">Setelah ditutup, meja tidak bisa menerima order baru.</p>
+					<p class="mb-4 text-sm text-gray-500">Tutup tanpa pembayaran (misal: customer pergi).</p>
 					<form method="POST" action="?/closeSession" use:enhance>
 						<button type="submit"
 							class="w-full rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5"
-							onclick={(e) => { if (!confirm('Tutup sesi ini? Customer tidak bisa menambah order baru.')) e.preventDefault(); }}>
+							onclick={(e) => { if (!confirm('Tutup sesi tanpa pembayaran?')) e.preventDefault(); }}>
 							Tutup Sesi
+						</button>
+					</form>
+				</div>
+			{/if}
+
+			<!-- Reopen Session -->
+			{#if session.status === 'closed'}
+				<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+					<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">Buka Ulang Sesi</h2>
+					<p class="mb-4 text-sm text-gray-500">Batalkan penutupan — status kembali ke aktif & belum bayar.</p>
+					<form method="POST" action="?/reopenSession" use:enhance={() => () => invalidateAll()}>
+						<button type="submit"
+							class="w-full rounded-xl border border-warning-300 py-2.5 text-sm font-medium text-warning-600 hover:bg-warning-50 dark:border-warning-500/30 dark:text-warning-400"
+							onclick={(e) => { if (!confirm('Buka ulang sesi ini?')) e.preventDefault(); }}>
+							Buka Ulang Sesi
 						</button>
 					</form>
 				</div>
