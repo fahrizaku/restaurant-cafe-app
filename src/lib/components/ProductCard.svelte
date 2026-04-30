@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { formatRupiah } from '$lib/utils';
+
 	interface Props {
 		name: string;
 		price: number;
@@ -14,7 +16,7 @@
 	<img src={image || '/img/product-1.png'} alt={name} class="products__img" />
 
 	<h3 class="products__name">{name}</h3>
-	<span class="products__price">${price.toFixed(2)}</span>
+	<span class="products__price">{formatRupiah(price)}</span>
 
 	<button class="products__button" aria-label="Add {name} to cart" onclick={() => onAdd?.()}>
 		<i class="ri-shopping-bag-3-fill"></i>

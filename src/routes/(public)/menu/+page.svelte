@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import ProductCard from '$lib/components/ProductCard.svelte';
+	import { formatRupiah } from '$lib/utils';
 
 	let { data } = $props();
 
@@ -15,7 +16,7 @@
 </script>
 
 <svelte:head>
-	<title>Menu — {data.table?.name || 'Pizza App'}</title>
+	<title>Menu — {data.table?.name || 'Restoran'}</title>
 </svelte:head>
 
 <Navbar onCartClick={data.noTable ? undefined : () => (cartOpen = true)} />
@@ -30,24 +31,24 @@
 				</div>
 				<h1 class="section__title">Scan QR Code</h1>
 				<p class="no-table__description">
-					Please scan the QR code at your table to view the menu and place your order.
+					Silakan scan QR code di meja Anda untuk melihat menu dan memesan.
 				</p>
-				<a href="/" class="no-table__back">Back to Home</a>
+				<a href="/" class="no-table__back">Kembali ke Beranda</a>
 			</div>
 		</section>
 	{:else}
 		<!--==================== MENU TITLE ====================-->
 		<section class="section" id="menu-top" style="padding-bottom: 0;">
 			<div class="container">
-				<h1 class="section__title">Our Delicious Menu</h1>
+				<h1 class="section__title">Menu Kami</h1>
 				<p style="text-align: center; margin-bottom: 1rem;">
-					{data.table ? `Table: ${data.table.name}` : ''}
+					{data.table ? `Meja: ${data.table.name}` : ''}
 				</p>
 
 				{#if data.activeSession}
 					<a href="/table/{data.table?.id}" class="bill-banner">
 						<i class="ri-receipt-line"></i>
-						<span>Running bill: <strong>${data.activeSession.totalPrice.toFixed(2)}</strong></span>
+						<span>Tagihan saat ini: <strong>{formatRupiah(data.activeSession.totalPrice)}</strong></span>
 						<i class="ri-arrow-right-s-line"></i>
 					</a>
 				{/if}
@@ -101,7 +102,7 @@
 
 <footer class="footer">
 	<div class="footer__container container">
-		<span class="footer__copy">&#169; All Rights Reserved By Pizza App</span>
+		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
 	</div>
 </footer>
 
@@ -111,29 +112,29 @@
 		<div class="cart-drawer-backdrop" onclick={() => (cartOpen = false)} role="presentation"></div>
 		<div class="cart-drawer-content">
 			<div class="cart-drawer-header">
-				<h2 class="cart-drawer-title">Your Order</h2>
-				<button onclick={() => (cartOpen = false)} aria-label="Close cart" class="cart-drawer-close">
+				<h2 class="cart-drawer-title">Pesanan Anda</h2>
+				<button onclick={() => (cartOpen = false)} aria-label="Tutup keranjang" class="cart-drawer-close">
 					<i class="ri-close-large-line"></i>
 				</button>
 			</div>
 
 			<div class="cart-drawer-items">
 				{#if cart.items.length === 0}
-					<p class="cart-empty-text">Your cart is empty</p>
+					<p class="cart-empty-text">Keranjang masih kosong</p>
 				{:else}
 					{#each cart.items as item}
 						<div class="cart-item">
 							<img src={item.image ?? '/img/product-1.png'} alt={item.name} class="cart-item-img" />
 							<div class="cart-item-info">
 								<p class="cart-item-name">{item.name}</p>
-								<p class="cart-item-price">${item.price.toFixed(2)}</p>
+								<p class="cart-item-price">{formatRupiah(item.price)}</p>
 							</div>
 							<div class="cart-item-controls">
-								<button onclick={() => cart.updateQty(item.menuId, item.quantity - 1)} class="qty-btn" aria-label="Decrease">
+								<button onclick={() => cart.updateQty(item.menuId, item.quantity - 1)} class="qty-btn" aria-label="Kurangi">
 									<i class="ri-subtract-line"></i>
 								</button>
 								<span class="qty-val">{item.quantity}</span>
-								<button onclick={() => cart.updateQty(item.menuId, item.quantity + 1)} class="qty-btn active" aria-label="Increase">
+								<button onclick={() => cart.updateQty(item.menuId, item.quantity + 1)} class="qty-btn active" aria-label="Tambah">
 									<i class="ri-add-line"></i>
 								</button>
 							</div>
@@ -145,13 +146,13 @@
 			{#if cart.items.length > 0}
 				<div class="cart-drawer-footer">
 					<div class="cart-total">
-						<span class="total-label">This order ({cart.count} items)</span>
-						<span class="total-value">${cart.total.toFixed(2)}</span>
+						<span class="total-label">Order ini ({cart.count} item)</span>
+						<span class="total-value">{formatRupiah(cart.total)}</span>
 					</div>
 
 					{#if data.activeSession}
 						<div class="session-total-hint">
-							Running bill after this: <strong>${(data.activeSession.totalPrice + cart.total).toFixed(2)}</strong>
+							Total tagihan setelah ini: <strong>{formatRupiah(data.activeSession.totalPrice + cart.total)}</strong>
 						</div>
 					{/if}
 
@@ -176,11 +177,11 @@
 							)}
 						/>
 						<button type="submit" disabled={ordering} class="button w-full">
-							{ordering ? 'Placing order...' : `Place Order · $${cart.total.toFixed(2)}`}
+							{ordering ? 'Memproses...' : `Pesan Sekarang · ${formatRupiah(cart.total)}`}
 						</button>
 					</form>
 
-					<button onclick={() => cart.clear()} class="clear-cart-btn">Clear cart</button>
+					<button onclick={() => cart.clear()} class="clear-cart-btn">Hapus semua</button>
 				</div>
 			{/if}
 		</div>
