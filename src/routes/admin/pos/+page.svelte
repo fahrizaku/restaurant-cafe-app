@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
 	import { untrack } from 'svelte';
 	import { formatRupiah } from '$lib/utils';
 
@@ -11,7 +10,6 @@
 	let selectedTableId = $state(untrack(() => data.tables[0]?.id ?? ''));
 	let selectedCategoryId = $state(untrack(() => data.categories[0]?.id ?? ''));
 	let cart = $state<CartItem[]>([]);
-	let successMsg = $state('');
 	let notesOpenId = $state<string | null>(null);
 
 	let activeSession = $derived(
@@ -55,10 +53,6 @@
 		return cart.find((i) => i.menuId === menuId)?.quantity ?? 0;
 	}
 
-	function showSuccess() {
-		successMsg = 'Pesanan berhasil dikirim ke dapur!';
-		setTimeout(() => (successMsg = ''), 3000);
-	}
 </script>
 
 <div class="space-y-4">
@@ -96,14 +90,6 @@
 			<a href="/admin/orders/{activeSession.id}" class="ml-auto text-xs font-medium text-brand-500 hover:underline">
 				Lihat sesi
 			</a>
-		</div>
-	{/if}
-
-	<!-- Success Toast -->
-	{#if successMsg}
-		<div class="flex items-center gap-3 rounded-xl border border-success-200 bg-success-50 px-4 py-3 dark:border-success-500/20 dark:bg-success-500/10">
-			<i class="ri-checkbox-circle-fill text-success-500"></i>
-			<p class="text-sm font-medium text-success-700 dark:text-success-400">{successMsg}</p>
 		</div>
 	{/if}
 
@@ -242,17 +228,7 @@
 						<form
 							method="POST"
 							action="?/order"
-							use:enhance={() => {
-								return async ({ result, update }) => {
-									await update({ reset: false });
-									if (result.type === 'success') {
-										cart = [];
-										notesOpenId = null;
-										await invalidateAll();
-										showSuccess();
-									}
-								};
-							}}
+							use:enhance
 						>
 							<input type="hidden" name="tableId" value={selectedTableId} />
 							<input type="hidden" name="items" value={JSON.stringify(cart.map(i => ({
