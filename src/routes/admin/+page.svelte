@@ -1,9 +1,16 @@
 <script lang="ts">
+	import { formatRupiah } from '$lib/utils';
+
 	let { data } = $props();
 
 	const paymentStatusStyle: Record<string, string> = {
 		unpaid: 'bg-warning-50 text-warning-600',
 		paid: 'bg-success-50 text-success-600'
+	};
+
+	const paymentStatusLabel: Record<string, string> = {
+		unpaid: 'Belum Bayar',
+		paid: 'Lunas'
 	};
 
 	function formatDate(date: Date | null) {
@@ -23,7 +30,7 @@
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 		<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
 			<div class="flex items-center justify-between">
-				<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Menus</span>
+				<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Menu</span>
 				<span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 dark:bg-brand-500/10">
 					<svg class="fill-brand-500" width="20" height="20" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C11.5858 2 11.25 2.33579 11.25 2.75V12C11.25 12.4142 11.5858 12.75 12 12.75H21.25C21.6642 12.75 22 12.4142 22 12C22 6.47715 17.5228 2 12 2ZM12.75 11.25V3.53263C13.2645 3.57761 13.7659 3.66843 14.25 3.80098C15.6929 4.19606 16.9827 4.96184 18.0104 5.98959C19.0382 7.01734 19.8039 8.30707 20.199 9.75C20.3316 10.2341 20.4224 10.7355 20.4674 11.25H12.75ZM2 12C2 7.25083 5.31065 3.27489 9.75 2.25415V3.80099C6.14748 4.78734 3.5 8.0845 3.5 12C3.5 16.6944 7.30558 20.5 12 20.5C15.9155 20.5 19.2127 17.8525 20.199 14.25H21.7459C20.7251 18.6894 16.7492 22 12 22C6.47715 22 2 17.5229 2 12Z" fill=""/></svg>
 				</span>
@@ -66,25 +73,25 @@
 	<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
 		<div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
 			<h2 class="text-base font-semibold text-gray-800 dark:text-white">Recent Sessions</h2>
-			<a href="/admin/orders" class="text-sm text-brand-500 hover:text-brand-600">View all</a>
+			<a href="/admin/orders" class="text-sm text-brand-500 hover:text-brand-600">Lihat semua</a>
 		</div>
 
 		<div class="overflow-x-auto">
 			<table class="w-full">
 				<thead>
 					<tr class="border-b border-gray-100 dark:border-gray-800">
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Session</th>
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Table</th>
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Orders</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Sesi</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Meja</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Pesanan</th>
 						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Total</th>
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Opened</th>
-						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Payment</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Dibuka</th>
+						<th class="px-5 py-3 text-left text-xs font-medium uppercase text-gray-400">Pembayaran</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#if data.recentSessions.length === 0}
 						<tr>
-							<td colspan="6" class="px-5 py-8 text-center text-sm text-gray-400">No sessions yet</td>
+							<td colspan="6" class="px-5 py-8 text-center text-sm text-gray-400">Belum ada sesi</td>
 						</tr>
 					{:else}
 						{#each data.recentSessions as session}
@@ -94,11 +101,11 @@
 								</td>
 								<td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{session.table?.name ?? '-'}</td>
 								<td class="px-5 py-3 text-sm text-gray-500">{session.batches.length} batch · {session.batches.reduce((s, b) => s + b.items.length, 0)} items</td>
-								<td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-white">${session.totalPrice.toFixed(2)}</td>
+								<td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-white">{formatRupiah(session.totalPrice)}</td>
 								<td class="px-5 py-3 text-sm text-gray-500">{formatDate(session.openedAt)}</td>
 								<td class="px-5 py-3">
-									<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize {paymentStatusStyle[session.paymentStatus] ?? ''}">
-										{session.paymentStatus}
+									<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {paymentStatusStyle[session.paymentStatus] ?? ''}">
+										{paymentStatusLabel[session.paymentStatus] ?? session.paymentStatus}
 									</span>
 								</td>
 							</tr>

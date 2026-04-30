@@ -2,16 +2,17 @@
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import { formatRupiah } from '$lib/utils';
 
 	let { data } = $props();
 	const table = $derived(data.table);
 	const session = $derived(data.session);
 
 	const batchStatusLabel: Record<string, string> = {
-		pending: 'Waiting for kitchen',
-		processing: 'Being prepared',
-		done: 'Ready',
-		cancelled: 'Cancelled'
+		pending: 'Menunggu dapur',
+		processing: 'Sedang diproses',
+		done: 'Siap',
+		cancelled: 'Dibatalkan'
 	};
 
 	const batchStatusIcon: Record<string, string> = {
@@ -58,9 +59,9 @@
 					<div class="empty-state__icon">
 						<i class="ri-restaurant-2-line"></i>
 					</div>
-					<h1 class="section__title">No Active Orders</h1>
-					<p class="empty-state__description">You haven't placed any orders yet for {table.name}.</p>
-					<a href="/menu?table={table.id}" class="button">Browse Menu</a>
+					<h1 class="section__title">Belum Ada Pesanan</h1>
+					<p class="empty-state__description">Anda belum memesan untuk {table.name}.</p>
+					<a href="/menu?table={table.id}" class="button">Lihat Menu</a>
 				</div>
 			{:else}
 				<!-- Header bill -->
@@ -71,7 +72,7 @@
 						</p>
 						<div class="bill-header__badges">
 							<span class="badge badge--open">
-								<i class="ri-record-circle-fill"></i> Session Open
+								<i class="ri-record-circle-fill"></i> Sesi Aktif
 							</span>
 							{#if session.paymentStatus === 'paid'}
 								<span class="badge badge--paid">
@@ -81,8 +82,8 @@
 						</div>
 					</div>
 					<div class="bill-header__total">
-						<span class="bill-header__total-label">Running Total</span>
-						<span class="bill-header__total-value">${session.totalPrice.toFixed(2)}</span>
+						<span class="bill-header__total-label">Total Sementara</span>
+						<span class="bill-header__total-value">{formatRupiah(session.totalPrice)}</span>
 					</div>
 				</div>
 
@@ -111,10 +112,10 @@
 										/>
 										<div class="batch__item-info">
 											<p class="batch__item-name">{item.menu?.name ?? 'Unknown'}</p>
-											<p class="batch__item-qty">{item.quantity} × ${item.priceAtTime.toFixed(2)}</p>
+											<p class="batch__item-qty">{item.quantity} × {formatRupiah(item.priceAtTime)}</p>
 										</div>
 										<span class="batch__item-total">
-											${(item.priceAtTime * item.quantity).toFixed(2)}
+											{formatRupiah(item.priceAtTime * item.quantity)}
 										</span>
 									</div>
 								{/each}
@@ -122,7 +123,7 @@
 
 							<div class="batch__footer">
 								<span class="batch__subtotal">Subtotal</span>
-								<span class="batch__subtotal-value">${batch.totalPrice.toFixed(2)}</span>
+								<span class="batch__subtotal-value">{formatRupiah(batch.totalPrice)}</span>
 							</div>
 						</div>
 					{/each}
@@ -130,8 +131,8 @@
 
 				<!-- Total & aksi -->
 				<div class="bill-summary">
-					{#each [['Items', activeBatches.reduce((s, b) => s + b.items.reduce((si, i) => si + i.quantity, 0), 0) + ' pcs'],
-						['Subtotal', '$' + session.totalPrice.toFixed(2)]] as [label, value]}
+					{#each [['Item', activeBatches.reduce((s, b) => s + b.items.reduce((si, i) => si + i.quantity, 0), 0) + ' pcs'],
+						['Subtotal', formatRupiah(session.totalPrice)]] as [label, value]}
 						<div class="bill-summary__row">
 							<span>{label}</span>
 							<span>{value}</span>
@@ -139,18 +140,18 @@
 					{/each}
 					<div class="bill-summary__total">
 						<span>Total</span>
-						<span>${session.totalPrice.toFixed(2)}</span>
+						<span>{formatRupiah(session.totalPrice)}</span>
 					</div>
 
 					{#if session.paymentStatus === 'unpaid'}
 						<div class="bill-pay-hint">
 							<i class="ri-information-line"></i>
-							<span>When you're ready, let the cashier know to process your payment.</span>
+							<span>Silakan beritahu kasir jika ingin membayar.</span>
 						</div>
 					{:else}
 						<div class="bill-paid-badge">
 							<i class="ri-checkbox-circle-fill"></i>
-							<span>Payment received. Thank you!</span>
+							<span>Pembayaran diterima. Terima kasih!</span>
 						</div>
 					{/if}
 				</div>
@@ -158,10 +159,10 @@
 				<!-- Actions -->
 				<div class="bill-actions">
 					<a href="/menu?table={table.id}" class="button">
-						<i class="ri-add-line"></i> Order More
+						<i class="ri-add-line"></i> Pesan Lagi
 					</a>
 					<p class="bill-refresh-hint">
-						<i class="ri-refresh-line"></i> Updates automatically every 10 seconds
+						<i class="ri-refresh-line"></i> Diperbarui otomatis setiap 10 detik
 					</p>
 				</div>
 			{/if}
@@ -171,7 +172,7 @@
 
 <footer class="footer">
 	<div class="footer__container container">
-		<span class="footer__copy">&#169; All Rights Reserved By Pizza App</span>
+		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
 	</div>
 </footer>
 

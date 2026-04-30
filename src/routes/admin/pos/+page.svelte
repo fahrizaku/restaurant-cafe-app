@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { untrack } from 'svelte';
+	import { formatRupiah } from '$lib/utils';
 
 	let { data } = $props();
 
@@ -55,7 +56,7 @@
 	}
 
 	function showSuccess() {
-		successMsg = 'Order berhasil dikirim!';
+		successMsg = 'Pesanan berhasil dikirim ke dapur!';
 		setTimeout(() => (successMsg = ''), 3000);
 	}
 </script>
@@ -70,7 +71,7 @@
 
 		<!-- Table Selector -->
 		<div class="flex items-center gap-2">
-			<label for="table-select" class="text-sm font-medium text-gray-600 dark:text-gray-400">Meja:</label>
+			<label for="table-select" class="text-sm font-medium text-gray-600 dark:text-gray-400">Pilih Meja:</label>
 			<select
 				id="table-select"
 				bind:value={selectedTableId}
@@ -89,7 +90,7 @@
 			<i class="ri-information-line text-brand-500"></i>
 			<p class="text-sm text-brand-700 dark:text-brand-400">
 				Sesi aktif — total sejauh ini:
-				<span class="font-semibold">${activeSession.totalPrice.toFixed(2)}</span>.
+				<span class="font-semibold">{formatRupiah(activeSession.totalPrice)}</span>.
 				Order baru akan ditambahkan ke sesi ini.
 			</p>
 			<a href="/admin/orders/{activeSession.id}" class="ml-auto text-xs font-medium text-brand-500 hover:underline">
@@ -149,7 +150,7 @@
 						{/if}
 						<div class="p-3">
 							<p class="text-sm font-medium text-gray-800 dark:text-white leading-tight">{menu.name}</p>
-							<p class="mt-1 text-sm font-semibold text-brand-500">${menu.price.toFixed(2)}</p>
+							<p class="mt-1 text-sm font-semibold text-brand-500">{formatRupiah(menu.price)}</p>
 						</div>
 					</button>
 				{/each}
@@ -173,7 +174,7 @@
 				<div class="flex flex-1 flex-col items-center justify-center px-5 py-12 text-center">
 					<i class="ri-shopping-cart-line mb-2 text-3xl text-gray-300"></i>
 					<p class="text-sm text-gray-400">Belum ada item</p>
-					<p class="text-xs text-gray-300">Klik menu di kiri untuk menambahkan</p>
+					<p class="text-xs text-gray-300">Klik menu di sebelah kiri untuk menambahkan</p>
 				</div>
 			{:else}
 				<div class="flex-1 divide-y divide-gray-50 overflow-y-auto dark:divide-gray-800">
@@ -182,7 +183,7 @@
 							<div class="flex items-start gap-3">
 								<div class="flex-1 min-w-0">
 									<p class="truncate text-sm font-medium text-gray-800 dark:text-white">{item.name}</p>
-									<p class="text-xs text-gray-400">${item.price.toFixed(2)} / item</p>
+									<p class="text-xs text-gray-400">{formatRupiah(item.price)} / item</p>
 								</div>
 								<div class="flex items-center gap-1">
 									<button
@@ -202,7 +203,7 @@
 									</button>
 								</div>
 								<p class="w-16 text-right text-sm font-semibold text-gray-800 dark:text-white">
-									${(item.price * item.quantity).toFixed(2)}
+									{formatRupiah(item.price * item.quantity)}
 								</p>
 							</div>
 
@@ -220,7 +221,7 @@
 										onclick={() => (notesOpenId = item.menuId)}
 										class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
 									>
-										{item.notes ? `📝 ${item.notes}` : '+ Tambah catatan'}
+										{item.notes ? `📝 ${item.notes}` : '+ Tambah catatan dapur'}
 									</button>
 								{/if}
 							</div>
@@ -232,11 +233,11 @@
 				<div class="border-t border-gray-100 px-5 py-4 space-y-3 dark:border-gray-800">
 					<div class="flex justify-between">
 						<span class="text-sm text-gray-500">Total</span>
-						<span class="text-lg font-bold text-gray-800 dark:text-white">${cartTotal.toFixed(2)}</span>
+						<span class="text-lg font-bold text-gray-800 dark:text-white">{formatRupiah(cartTotal)}</span>
 					</div>
 
 					{#if !selectedTableId}
-						<p class="text-xs text-error-500">Pilih meja terlebih dahulu</p>
+						<p class="text-xs text-error-500">Pilih meja dulu sebelum order</p>
 					{:else}
 						<form
 							method="POST"
@@ -265,7 +266,7 @@
 								disabled={cart.length === 0}
 								class="w-full rounded-xl bg-brand-500 py-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
 							>
-								Place Order — ${cartTotal.toFixed(2)}
+								Place Order — {formatRupiah(cartTotal)}
 							</button>
 						</form>
 					{/if}

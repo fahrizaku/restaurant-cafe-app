@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { formatRupiah } from '$lib/utils';
 
 	let { data } = $props();
 	const session = $derived(data.session);
@@ -11,8 +12,15 @@
 	};
 
 	const batchStatusNextLabel: Record<string, string> = {
-		pending: 'Mark Processing',
-		processing: 'Mark Done'
+		pending: 'Tandai Diproses',
+		processing: 'Tandai Selesai'
+	};
+
+	const batchStatusLabel: Record<string, string> = {
+		pending: 'Menunggu',
+		processing: 'Diproses',
+		done: 'Selesai',
+		cancelled: 'Dibatalkan'
 	};
 
 	const batchStatusStyle: Record<string, string> = {
@@ -23,7 +31,7 @@
 	};
 
 	const paymentMethodLabel: Record<string, string> = {
-		cash: 'Cash', qris: 'QRIS', transfer: 'Bank Transfer'
+		cash: 'Tunai', qris: 'QRIS', transfer: 'Transfer Bank'
 	};
 
 	function formatDate(date: Date | null) {
@@ -40,7 +48,7 @@
 <div class="space-y-6">
 	<!-- Header -->
 	<div class="flex items-center gap-3 flex-wrap">
-		<a href="/admin/orders" aria-label="Back"
+		<a href="/admin/orders" aria-label="Kembali"
 			class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5">
 			<svg class="fill-current" width="16" height="16" viewBox="0 0 24 24">
 				<path fill-rule="evenodd" clip-rule="evenodd" d="M15.7071 4.29289C16.0976 4.68342 16.0976 5.31658 15.7071 5.70711L9.41421 12L15.7071 18.2929C16.0976 18.6834 16.0976 19.3166 15.7071 19.7071C15.3166 20.0976 14.6834 20.0976 14.2929 19.7071L7.29289 12.7071C6.90237 12.3166 6.90237 11.6834 7.29289 11.2929L14.2929 4.29289C14.6834 3.90237 15.3166 3.90237 15.7071 4.29289Z"/>
@@ -48,25 +56,25 @@
 		</a>
 		<div>
 			<h1 class="text-2xl font-semibold text-gray-800 dark:text-white">
-				Session <span class="font-mono">#{session.id.slice(0, 8)}</span>
+				Sesi <span class="font-mono">#{session.id.slice(0, 8)}</span>
 			</h1>
 			<p class="text-sm text-gray-500 dark:text-gray-400">
-				{session.table?.name} · Opened {formatDate(session.openedAt)}
+				{session.table?.name} · Dibuka {formatDate(session.openedAt)}
 			</p>
 		</div>
 		<div class="ml-2 flex gap-2">
 			{#if session.status === 'open'}
 				<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-3 py-1 text-sm font-medium text-success-600">
-					<i class="ri-record-circle-fill text-[8px]"></i> Open
+					<i class="ri-record-circle-fill text-[8px]"></i> Aktif
 				</span>
 			{:else}
 				<span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-500 dark:bg-gray-800">
-					Closed
+					Selesai
 				</span>
 			{/if}
 			{#if session.paymentStatus === 'paid'}
 				<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-3 py-1 text-sm font-medium text-success-600">
-					<i class="ri-checkbox-circle-fill"></i> Paid
+					<i class="ri-checkbox-circle-fill"></i> Lunas
 				</span>
 			{/if}
 		</div>
@@ -85,11 +93,11 @@
 							<span class="text-xs text-gray-400">{formatTime(batch.createdAt)}</span>
 						</div>
 						<div class="flex items-center gap-2">
-							<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize {batchStatusStyle[batch.status]}">
-								{batch.status}
+							<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {batchStatusStyle[batch.status]}">
+								{batchStatusLabel[batch.status] ?? batch.status}
 							</span>
 							<span class="text-sm font-semibold text-gray-800 dark:text-white">
-								${batch.totalPrice.toFixed(2)}
+								{formatRupiah(batch.totalPrice)}
 							</span>
 						</div>
 					</div>
@@ -103,12 +111,12 @@
 								<div class="flex-1">
 									<p class="text-sm font-medium text-gray-800 dark:text-white">{item.menu?.name ?? 'Unknown'}</p>
 									{#if item.notes}
-										<p class="text-xs text-gray-400">Note: {item.notes}</p>
+										<p class="text-xs text-gray-400">Catatan: {item.notes}</p>
 									{/if}
 								</div>
 								<div class="text-right">
-									<p class="text-sm font-medium text-gray-800 dark:text-white">${(item.priceAtTime * item.quantity).toFixed(2)}</p>
-									<p class="text-xs text-gray-400">{item.quantity} × ${item.priceAtTime.toFixed(2)}</p>
+									<p class="text-sm font-medium text-gray-800 dark:text-white">{formatRupiah(item.priceAtTime * item.quantity)}</p>
+									<p class="text-xs text-gray-400">{item.quantity} × {formatRupiah(item.priceAtTime)}</p>
 								</div>
 							</div>
 						{/each}
@@ -133,8 +141,8 @@
 								<input type="hidden" name="status" value="cancelled" />
 								<button type="submit"
 									class="rounded-lg bg-error-50 px-3 py-1.5 text-xs font-medium text-error-500 hover:bg-error-100"
-									onclick={(e) => { if (!confirm('Cancel this order batch?')) e.preventDefault(); }}>
-									Cancel Batch
+									onclick={(e) => { if (!confirm('Batalkan order ini?')) e.preventDefault(); }}>
+									Batalkan Order
 								</button>
 							</form>
 						</div>
@@ -147,36 +155,36 @@
 		<div class="space-y-4">
 			<!-- Session Info -->
 			<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-				<h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Session Info</h2>
+				<h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Info Sesi</h2>
 				<dl class="space-y-3">
 					<div>
-						<dt class="text-xs font-medium uppercase text-gray-400">Table</dt>
+						<dt class="text-xs font-medium uppercase text-gray-400">Meja</dt>
 						<dd class="mt-1 text-sm text-gray-700 dark:text-gray-300">{session.table?.name ?? '-'}</dd>
 					</div>
 					<div>
-						<dt class="text-xs font-medium uppercase text-gray-400">Batches</dt>
+						<dt class="text-xs font-medium uppercase text-gray-400">Pesanan</dt>
 						<dd class="mt-1 text-sm text-gray-700 dark:text-gray-300">
-							{session.batches.length} orders · {session.batches.reduce((s, b) => s + b.items.length, 0)} items
+							{session.batches.length} batch · {session.batches.reduce((s, b) => s + b.items.length, 0)} item
 						</dd>
 					</div>
 					<div>
-						<dt class="text-xs font-medium uppercase text-gray-400">Total Bill</dt>
-						<dd class="mt-1 text-lg font-semibold text-gray-800 dark:text-white">${session.totalPrice.toFixed(2)}</dd>
+						<dt class="text-xs font-medium uppercase text-gray-400">Total Tagihan</dt>
+						<dd class="mt-1 text-lg font-semibold text-gray-800 dark:text-white">{formatRupiah(session.totalPrice)}</dd>
 					</div>
 					<div>
-						<dt class="text-xs font-medium uppercase text-gray-400">Payment</dt>
+						<dt class="text-xs font-medium uppercase text-gray-400">Pembayaran</dt>
 						<dd class="mt-1 text-sm text-gray-700 dark:text-gray-300">
 							{#if session.paymentStatus === 'paid'}
-								<span class="font-medium text-success-600">Paid</span>
+								<span class="font-medium text-success-600">Lunas</span>
 								{#if session.paymentMethod}· {paymentMethodLabel[session.paymentMethod]}{/if}
 							{:else}
-								<span class="text-gray-400">Unpaid</span>
+								<span class="text-gray-400">Belum Bayar</span>
 							{/if}
 						</dd>
 					</div>
 					{#if session.closedAt}
 						<div>
-							<dt class="text-xs font-medium uppercase text-gray-400">Closed At</dt>
+							<dt class="text-xs font-medium uppercase text-gray-400">Ditutup</dt>
 							<dd class="mt-1 text-sm text-gray-700 dark:text-gray-300">{formatDate(session.closedAt)}</dd>
 						</div>
 					{/if}
@@ -186,11 +194,11 @@
 			<!-- Payment -->
 			{#if session.paymentStatus === 'unpaid' && session.status === 'open'}
 				<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-					<h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Payment</h2>
+					<h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Pembayaran</h2>
 					<form method="POST" action="?/markPaid" use:enhance class="space-y-3">
 						<fieldset class="space-y-2">
-							<legend class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Select Method</legend>
-							{#each [['cash', 'Cash', 'ri-money-dollar-circle-line'], ['qris', 'QRIS', 'ri-qr-code-line'], ['transfer', 'Bank Transfer', 'ri-bank-line']] as [val, label, icon]}
+							<legend class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Pilih Metode</legend>
+							{#each [['cash', 'Tunai', 'ri-money-dollar-circle-line'], ['qris', 'QRIS', 'ri-qr-code-line'], ['transfer', 'Transfer Bank', 'ri-bank-line']] as [val, label, icon]}
 								<label class="flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors has-[:checked]:border-success-400 has-[:checked]:bg-success-50 border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/5">
 									<input type="radio" name="paymentMethod" value={val} class="accent-success-600" required />
 									<i class="{icon} text-base text-gray-500"></i>
@@ -200,7 +208,7 @@
 						</fieldset>
 						<button type="submit"
 							class="w-full rounded-xl bg-success-500 py-2.5 text-sm font-medium text-white hover:bg-success-600">
-							Confirm Payment
+							Konfirmasi Pembayaran
 						</button>
 					</form>
 				</div>
@@ -209,13 +217,13 @@
 			<!-- Close Session -->
 			{#if session.status === 'open'}
 				<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-					<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">Close Session</h2>
-					<p class="mb-4 text-sm text-gray-500">Finalize this session. No more orders can be added after closing.</p>
+					<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">Tutup Sesi</h2>
+					<p class="mb-4 text-sm text-gray-500">Setelah ditutup, meja tidak bisa menerima order baru.</p>
 					<form method="POST" action="?/closeSession" use:enhance>
 						<button type="submit"
 							class="w-full rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5"
-							onclick={(e) => { if (!confirm('Close this session? Customers won\'t be able to add more orders.')) e.preventDefault(); }}>
-							Close Session
+							onclick={(e) => { if (!confirm('Tutup sesi ini? Customer tidak bisa menambah order baru.')) e.preventDefault(); }}>
+							Tutup Sesi
 						</button>
 					</form>
 				</div>
