@@ -89,10 +89,10 @@ export const actions: Actions = {
 			}))
 		);
 
-		// Update total sesi
+		// Update total sesi, reset paymentStatus jika sebelumnya sudah paid
 		await db
 			.update(tableSessions)
-			.set({ totalPrice: session.totalPrice + batchTotal })
+			.set({ totalPrice: session.totalPrice + batchTotal, paymentStatus: 'unpaid' })
 			.where(eq(tableSessions.id, session.id));
 
 		redirect(303, `/table/${tableId}`);

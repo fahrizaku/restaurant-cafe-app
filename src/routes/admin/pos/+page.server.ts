@@ -85,9 +85,10 @@ export const actions: Actions = {
 			}))
 		);
 
+		// Reset paymentStatus jika sebelumnya sudah paid
 		await db
 			.update(tableSessions)
-			.set({ totalPrice: session.totalPrice + batchTotal })
+			.set({ totalPrice: session.totalPrice + batchTotal, paymentStatus: 'unpaid' })
 			.where(eq(tableSessions.id, session.id));
 
 		return { success: true };
