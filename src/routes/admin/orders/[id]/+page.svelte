@@ -6,30 +6,6 @@
 	let { data } = $props();
 	const session = $derived(data.session);
 
-	const batchStatusNext: Record<string, string> = {
-		pending: 'processing',
-		processing: 'done'
-	};
-
-	const batchStatusNextLabel: Record<string, string> = {
-		pending: 'Tandai Diproses',
-		processing: 'Tandai Selesai'
-	};
-
-	const batchStatusLabel: Record<string, string> = {
-		pending: 'Menunggu',
-		processing: 'Diproses',
-		done: 'Selesai',
-		cancelled: 'Dibatalkan'
-	};
-
-	const batchStatusStyle: Record<string, string> = {
-		pending: 'bg-warning-50 text-warning-600',
-		processing: 'bg-brand-50 text-brand-500',
-		done: 'bg-success-50 text-success-600',
-		cancelled: 'bg-error-50 text-error-500'
-	};
-
 	const paymentMethodLabel: Record<string, string> = {
 		cash: 'Tunai', qris: 'QRIS', transfer: 'Transfer Bank'
 	};
@@ -67,6 +43,14 @@
 				<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-3 py-1 text-sm font-medium text-success-600">
 					<i class="ri-record-circle-fill text-[8px]"></i> Aktif
 				</span>
+			{:else if session.status === 'processing'}
+				<span class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-500">
+					<i class="ri-restaurant-line"></i> Diproses
+				</span>
+			{:else if session.status === 'cancelled'}
+				<span class="inline-flex rounded-full bg-error-50 px-3 py-1 text-sm font-medium text-error-500">
+					Dibatalkan
+				</span>
 			{:else}
 				<span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-500 dark:bg-gray-800">
 					Selesai
@@ -92,14 +76,9 @@
 							</span>
 							<span class="text-xs text-gray-400">{formatTime(batch.createdAt)}</span>
 						</div>
-						<div class="flex items-center gap-2">
-							<span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {batchStatusStyle[batch.status]}">
-								{batchStatusLabel[batch.status] ?? batch.status}
-							</span>
-							<span class="text-sm font-semibold text-gray-800 dark:text-white">
-								{formatRupiah(batch.totalPrice)}
-							</span>
-						</div>
+						<span class="text-sm font-semibold text-gray-800 dark:text-white">
+							{formatRupiah(batch.totalPrice)}
+						</span>
 					</div>
 
 					<!-- Items -->
@@ -122,31 +101,6 @@
 						{/each}
 					</div>
 
-					<!-- Batch Actions -->
-					{#if batch.status !== 'done' && batch.status !== 'cancelled'}
-						<div class="flex items-center gap-2 border-t border-gray-100 px-5 py-3 dark:border-gray-800">
-							{#if batchStatusNext[batch.status]}
-								<form method="POST" action="?/updateBatchStatus" use:enhance={() => () => invalidateAll()}>
-									<input type="hidden" name="batchId" value={batch.id} />
-									<input type="hidden" name="status" value={batchStatusNext[batch.status]} />
-									<button type="submit"
-										class="rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-500 hover:bg-brand-100 dark:bg-brand-500/10">
-										{batchStatusNextLabel[batch.status]}
-									</button>
-								</form>
-							{/if}
-
-							<form method="POST" action="?/updateBatchStatus" use:enhance={() => () => invalidateAll()}>
-								<input type="hidden" name="batchId" value={batch.id} />
-								<input type="hidden" name="status" value="cancelled" />
-								<button type="submit"
-									class="rounded-lg bg-error-50 px-3 py-1.5 text-xs font-medium text-error-500 hover:bg-error-100"
-									onclick={(e) => { if (!confirm('Batalkan order ini?')) e.preventDefault(); }}>
-									Batalkan Order
-								</button>
-							</form>
-						</div>
-					{/if}
 				</div>
 			{/each}
 		</div>
@@ -215,26 +169,40 @@
 				</div>
 			{/if}
 
-			<!-- Close Session (tanpa pembayaran, untuk kasus darurat) -->
-			{#if session.status === 'open'}
+			<!-- Selesai / Sudah Diantar -->
+			{#if session.status === 'processing'}
 				<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
-					<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">Tutup Sesi</h2>
-					<p class="mb-4 text-sm text-gray-500">Tutup tanpa pembayaran (misal: customer pergi).</p>
-					<form method="POST" action="?/closeSession" use:enhance>
+					<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">Sudah Diantar?</h2>
+					<p class="mb-4 text-sm text-gray-500">Klik setelah semua pesanan diantarkan ke meja.</p>
+					<form method="POST" action="?/completeSession" use:enhance={() => () => invalidateAll()}>
 						<button type="submit"
-							class="w-full rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5"
-							onclick={(e) => { if (!confirm('Tutup sesi tanpa pembayaran?')) e.preventDefault(); }}>
-							Tutup Sesi
+							class="w-full rounded-xl bg-brand-500 py-2.5 text-sm font-medium text-white hover:bg-brand-600">
+							Selesai — Sudah Diantar
 						</button>
 					</form>
 				</div>
 			{/if}
 
-			<!-- Reopen Session -->
-			{#if session.status === 'closed'}
+			<!-- Batalkan Sesi -->
+			{#if session.status === 'open' || session.status === 'processing'}
+				<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+					<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">Batalkan Sesi</h2>
+					<p class="mb-4 text-sm text-gray-500">Batalkan sesi tanpa pembayaran (misal: customer pergi).</p>
+					<form method="POST" action="?/cancelSession" use:enhance={() => () => invalidateAll()}>
+						<button type="submit"
+							class="w-full rounded-xl border border-error-300 py-2.5 text-sm font-medium text-error-500 hover:bg-error-50 dark:border-error-500/30"
+							onclick={(e) => { if (!confirm('Batalkan sesi ini?')) e.preventDefault(); }}>
+							Batalkan Sesi
+						</button>
+					</form>
+				</div>
+			{/if}
+
+			<!-- Buka Ulang Sesi -->
+			{#if session.status !== 'open'}
 				<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
 					<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">Buka Ulang Sesi</h2>
-					<p class="mb-4 text-sm text-gray-500">Batalkan penutupan — status kembali ke aktif & belum bayar.</p>
+					<p class="mb-4 text-sm text-gray-500">Status kembali ke aktif & belum bayar.</p>
 					<form method="POST" action="?/reopenSession" use:enhance={() => () => invalidateAll()}>
 						<button type="submit"
 							class="w-full rounded-xl border border-warning-300 py-2.5 text-sm font-medium text-warning-600 hover:bg-warning-50 dark:border-warning-500/30 dark:text-warning-400"

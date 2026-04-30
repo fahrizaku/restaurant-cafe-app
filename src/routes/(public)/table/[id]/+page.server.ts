@@ -1,6 +1,6 @@
 import { getDb } from '$lib/server/db';
 import { tableSessions } from '$lib/server/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, or, desc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -17,7 +17,10 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
 	// Ambil sesi aktif beserta semua batch dan item-nya
 	const session = await db.query.tableSessions.findFirst({
-		where: and(eq(tableSessions.tableId, params.id), eq(tableSessions.status, 'open')),
+		where: and(
+			eq(tableSessions.tableId, params.id),
+			or(eq(tableSessions.status, 'open'), eq(tableSessions.status, 'processing'))
+		),
 		with: {
 			batches: {
 				orderBy: (b, { desc }) => [desc(b.createdAt)],

@@ -8,7 +8,9 @@
 	const statusTabs = [
 		{ value: null, label: 'Semua' },
 		{ value: 'open', label: 'Aktif' },
-		{ value: 'closed', label: 'Selesai' }
+		{ value: 'processing', label: 'Diproses' },
+		{ value: 'closed', label: 'Selesai' },
+		{ value: 'cancelled', label: 'Dibatalkan' }
 	];
 
 	const paymentMethodLabel: Record<string, string> = {
@@ -93,6 +95,14 @@
 										<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-600">
 											<i class="ri-record-circle-fill text-[8px]"></i> Aktif
 										</span>
+									{:else if session.status === 'processing'}
+										<span class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-500 dark:bg-brand-500/10">
+											<i class="ri-restaurant-line text-[10px]"></i> Diproses
+										</span>
+									{:else if session.status === 'cancelled'}
+										<span class="inline-flex rounded-full bg-error-50 px-2.5 py-1 text-xs font-medium text-error-500 dark:bg-error-500/10">
+											Dibatalkan
+										</span>
 									{:else}
 										<span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
 											Selesai
@@ -122,15 +132,25 @@
 											</button>
 										{/if}
 
-										{#if session.status === 'open'}
-											<form method="POST" action="?/closeSession" use:enhance={() => () => invalidateAll()}>
+										{#if session.status === 'processing'}
+											<form method="POST" action="?/completeSession" use:enhance={() => () => invalidateAll()}>
+												<input type="hidden" name="id" value={session.id} />
+												<button type="submit"
+													class="rounded-lg bg-brand-50 px-3 py-1.5 text-xs font-medium text-brand-500 hover:bg-brand-100">
+													Sudah Diantar
+												</button>
+											</form>
+										{/if}
+
+										{#if session.status === 'open' || session.status === 'processing'}
+											<form method="POST" action="?/cancelSession" use:enhance={() => () => invalidateAll()}>
 												<input type="hidden" name="id" value={session.id} />
 												<button
 													type="submit"
-													class="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-													onclick={(e) => { if (!confirm('Tutup sesi ini?')) e.preventDefault(); }}
+													class="rounded-lg bg-error-50 px-3 py-1.5 text-xs font-medium text-error-500 hover:bg-error-100"
+													onclick={(e) => { if (!confirm('Batalkan sesi ini?')) e.preventDefault(); }}
 												>
-													Tutup Sesi
+													Batalkan
 												</button>
 											</form>
 										{/if}

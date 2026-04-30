@@ -71,12 +71,18 @@
 							<i class="ri-map-pin-2-fill"></i> {table.name}
 						</p>
 						<div class="bill-header__badges">
-							<span class="badge badge--open">
-								<i class="ri-record-circle-fill"></i> Sesi Aktif
-							</span>
+							{#if session.status === 'processing'}
+								<span class="badge badge--processing">
+									<i class="ri-restaurant-line"></i> Sedang Disiapkan
+								</span>
+							{:else}
+								<span class="badge badge--open">
+									<i class="ri-record-circle-fill"></i> Sesi Aktif
+								</span>
+							{/if}
 							{#if session.paymentStatus === 'paid'}
 								<span class="badge badge--paid">
-									<i class="ri-checkbox-circle-fill"></i> Paid
+									<i class="ri-checkbox-circle-fill"></i> Lunas
 								</span>
 							{/if}
 						</div>
@@ -158,9 +164,16 @@
 
 				<!-- Actions -->
 				<div class="bill-actions">
-					<a href="/menu?table={table.id}" class="button">
-						<i class="ri-add-line"></i> Pesan Lagi
-					</a>
+					{#if session.status === 'open'}
+						<a href="/menu?table={table.id}" class="button">
+							<i class="ri-add-line"></i> Pesan Lagi
+						</a>
+					{:else if session.status === 'processing'}
+						<div class="bill-processing-hint">
+							<i class="ri-restaurant-2-line"></i>
+							<span>Pesanan Anda sedang disiapkan. Mohon tunggu.</span>
+						</div>
+					{/if}
 					<p class="bill-refresh-hint">
 						<i class="ri-refresh-line"></i> Diperbarui otomatis setiap 10 detik
 					</p>
@@ -243,6 +256,11 @@
 	}
 
 	.badge--open {
+		background-color: hsla(24, 86%, 90%, .2);
+		color: var(--white-color);
+	}
+
+	.badge--processing {
 		background-color: hsla(24, 86%, 90%, .2);
 		color: var(--white-color);
 	}
@@ -457,6 +475,22 @@
 		align-items: center;
 		column-gap: .5rem;
 	}
+
+	.bill-processing-hint {
+		display: flex;
+		align-items: center;
+		column-gap: .5rem;
+		font-size: var(--small-font-size);
+		font-weight: var(--font-medium);
+		color: var(--first-color);
+		background-color: hsla(353, 100%, 40%, .06);
+		padding: .75rem 1.25rem;
+		border-radius: .75rem;
+		width: 100%;
+		justify-content: center;
+	}
+
+	.bill-processing-hint i { font-size: 1.1rem; }
 
 	.bill-refresh-hint {
 		display: flex;
