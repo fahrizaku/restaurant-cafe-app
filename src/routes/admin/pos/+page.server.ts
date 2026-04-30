@@ -1,7 +1,7 @@
 import { getDb } from '$lib/server/db';
 import { tableSessions, orderBatches, orderItems } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ platform }) => {
@@ -91,6 +91,6 @@ export const actions: Actions = {
 			.set({ totalPrice: session.totalPrice + batchTotal, paymentStatus: 'unpaid' })
 			.where(eq(tableSessions.id, session.id));
 
-		return { success: true };
+		redirect(303, `/admin/orders/${session.id}`);
 	}
 };
