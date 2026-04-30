@@ -34,12 +34,12 @@ export const actions: Actions = {
 
 		const db = getDb(platform.env.DB);
 		await db.update(tableSessions)
-			.set({ paymentStatus: 'paid', paymentMethod, status: 'closed', closedAt: new Date() })
+			.set({ paymentStatus: 'paid', paymentMethod, status: 'processing' })
 			.where(eq(tableSessions.id, id));
 		return { success: true };
 	},
 
-	closeSession: async ({ request, platform }) => {
+	completeSession: async ({ request, platform }) => {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
 		const data = await request.formData();
@@ -50,6 +50,21 @@ export const actions: Actions = {
 		const db = getDb(platform.env.DB);
 		await db.update(tableSessions)
 			.set({ status: 'closed', closedAt: new Date() })
+			.where(eq(tableSessions.id, id));
+		return { success: true };
+	},
+
+	cancelSession: async ({ request, platform }) => {
+		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
+
+		const data = await request.formData();
+		const id = data.get('id') as string;
+
+		if (!id) return fail(400, { message: 'ID required' });
+
+		const db = getDb(platform.env.DB);
+		await db.update(tableSessions)
+			.set({ status: 'cancelled', closedAt: new Date() })
 			.where(eq(tableSessions.id, id));
 		return { success: true };
 	}

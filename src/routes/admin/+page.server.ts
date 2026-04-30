@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ platform }) => {
 		db.query.tables.findMany()
 	]);
 
-	const openSessions = sessions.filter((s) => s.status === 'open').length;
+	const openSessions = sessions.filter((s) => s.status === 'open' || s.status === 'processing').length;
 
 	return {
 		stats: { menus: menus.length, categories: categories.length, openSessions, tables: tables.length },

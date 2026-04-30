@@ -53,7 +53,7 @@ export const tableSessions = sqliteTable('table_sessions', {
 	tableId: text('table_id')
 		.notNull()
 		.references(() => tables.id),
-	status: text('status', { enum: ['open', 'closed'] }).notNull().default('open'),
+	status: text('status', { enum: ['open', 'processing', 'closed', 'cancelled'] }).notNull().default('open'),
 	paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] }).notNull().default('unpaid'),
 	paymentMethod: text('payment_method', { enum: ['cash', 'qris', 'transfer'] }),
 	totalPrice: real('total_price').notNull().default(0),
