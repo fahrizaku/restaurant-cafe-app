@@ -3,6 +3,13 @@
 	import { invalidateAll } from '$app/navigation';
 	import { formatRupiah } from '$lib/utils';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
+	import { Circle, UtensilsCrossed, CheckCircle2, Banknote, QrCode, Landmark, Eye } from 'lucide-svelte';
+
+	const paymentOptions = [
+		{ val: 'cash', label: 'Tunai', Icon: Banknote },
+		{ val: 'qris', label: 'QRIS', Icon: QrCode },
+		{ val: 'transfer', label: 'Transfer Bank', Icon: Landmark }
+	];
 
 	let { data } = $props();
 	let confirmDialog = $state<{ title: string; message?: string; confirmLabel?: string; confirmClass?: string; onConfirm: () => void } | null>(null);
@@ -95,11 +102,11 @@
 								<td class="px-5 py-3">
 									{#if session.status === 'open'}
 										<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-600">
-											<i class="ri-record-circle-fill text-[8px]"></i> Aktif
+											<Circle size={8} class="fill-current" /> Aktif
 										</span>
 									{:else if session.status === 'processing'}
 										<span class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-500 dark:bg-brand-500/10">
-											<i class="ri-restaurant-line text-[10px]"></i> Diproses
+											<UtensilsCrossed size={10} /> Diproses
 										</span>
 									{:else if session.status === 'cancelled'}
 										<span class="inline-flex rounded-full bg-error-50 px-2.5 py-1 text-xs font-medium text-error-500 dark:bg-error-500/10">
@@ -114,7 +121,7 @@
 								<td class="px-5 py-3">
 									{#if session.paymentStatus === 'paid'}
 										<span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2.5 py-1 text-xs font-medium text-success-600">
-											<i class="ri-checkbox-circle-fill"></i>
+											<CheckCircle2 size={12} />
 											Lunas · {paymentMethodLabel[session.paymentMethod ?? ''] ?? '-'}
 										</span>
 									{:else}
@@ -159,12 +166,10 @@
 
 										<a
 											href="/admin/orders/{session.id}"
-											class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-white/5"
+											class="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 text-blue-500 hover:bg-blue-50 dark:border-blue-500/30 dark:hover:bg-blue-500/10"
 											aria-label="Lihat detail sesi"
 										>
-											<svg class="fill-current" width="14" height="14" viewBox="0 0 24 24">
-												<path fill-rule="evenodd" clip-rule="evenodd" d="M12 4.25C7.16751 4.25 3.25 8.16751 3.25 12C3.25 15.8325 7.16751 19.75 12 19.75C16.8325 19.75 20.75 15.8325 20.75 12C20.75 8.16751 16.8325 4.25 12 4.25ZM1.75 12C1.75 7.33908 6.33908 2.75 12 2.75C17.6609 2.75 22.25 7.33908 22.25 12C22.25 16.6609 17.6609 21.25 12 21.25C6.33908 21.25 1.75 16.6609 1.75 12ZM11.0001 8.5C11.0001 8.08579 11.3359 7.75 11.7501 7.75H12.0001C12.4143 7.75 12.7501 8.08579 12.7501 8.5C12.7501 8.91421 12.4143 9.25 12.0001 9.25H11.7501C11.3359 9.25 11.0001 8.91421 11.0001 8.5ZM12 10.75C12.4142 10.75 12.75 11.0858 12.75 11.5V15.5C12.75 15.9142 12.4142 16.25 12 16.25C11.5858 16.25 11.25 15.9142 11.25 15.5V11.5C11.25 11.0858 11.5858 10.75 12 10.75Z"/>
-											</svg>
+											<Eye size={15} />
 										</a>
 									</div>
 								</td>
@@ -210,10 +215,10 @@
 				<input type="hidden" name="id" value={payDialogSessionId} />
 				<fieldset class="space-y-2">
 					<legend class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Metode Pembayaran</legend>
-					{#each [['cash', 'Tunai', 'ri-money-dollar-circle-line'], ['qris', 'QRIS', 'ri-qr-code-line'], ['transfer', 'Transfer Bank', 'ri-bank-line']] as [val, label, icon]}
+					{#each paymentOptions as { val, label, Icon }}
 						<label class="flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-colors has-[:checked]:border-success-400 has-[:checked]:bg-success-50 border-gray-200 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/5">
 							<input type="radio" name="paymentMethod" value={val} class="accent-success-600" required />
-							<i class="{icon} text-lg text-gray-500"></i>
+							<Icon size={18} class="text-gray-500" />
 							<span class="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
 						</label>
 					{/each}
