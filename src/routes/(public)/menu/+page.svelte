@@ -7,9 +7,9 @@
 
 	let { data } = $props();
 
-	let activeCategory = $state<string>('');
+	let activeCategory = $state<string>('all');
 	$effect(() => {
-		if (!activeCategory && data.categories[0]) activeCategory = data.categories[0].id;
+		if (activeCategory === '' && data.categories[0]) activeCategory = 'all';
 	});
 </script>
 
@@ -47,23 +47,22 @@
 	<!-- Category Tabs -->
 	<div class="category-tabs sticky-tabs">
 		<div class="container flex gap-4 overflow-x-auto py-3 no-scrollbar">
+			<button
+				onclick={() => (activeCategory = 'all')}
+				class="category-btn {activeCategory === 'all' ? 'active' : ''}"
+			>
+				Semua
+				{#if activeCategory === 'all'}
+					<div class="active-indicator"></div>
+				{/if}
+			</button>
+
 			{#each data.categories as cat}
 				<button
 					onclick={() => {
 						activeCategory = cat.id;
-						const el = document.getElementById(`cat-${cat.id}`);
-						if (el) {
-							const offset = 120; // header height + tabs height approx
-							const bodyRect = document.body.getBoundingClientRect().top;
-							const elementRect = el.getBoundingClientRect().top;
-							const elementPosition = elementRect - bodyRect;
-							const offsetPosition = elementPosition - offset;
-
-							window.scrollTo({
-								top: offsetPosition,
-								behavior: 'smooth'
-							});
-						}
+						// Scroll to top of products when category changes
+						window.scrollTo({ top: 0, behavior: 'smooth' });
 					}}
 					class="category-btn {activeCategory === cat.id ? 'active' : ''}"
 				>
@@ -79,20 +78,24 @@
 	<!--==================== PRODUCTS ====================-->
 	<div class="products-wrapper">
 		{#each data.categories as cat}
-			<section class="products section" id="cat-{cat.id}">
-				<h2 class="section__title">{cat.name}</h2>
-				<div class="products__container container grid">
-					{#each cat.menus as menu}
-						<ProductCard
-							name={menu.name}
-							price={menu.price}
-							image={menu.image ?? undefined}
-							description={menu.description ?? undefined}
-							onAdd={() => cart.add({ menuId: menu.id, name: menu.name, price: menu.price, image: menu.image })}
-						/>
-					{/each}
-				</div>
-			</section>
+			{#if activeCategory === 'all' || activeCategory === cat.id}
+				<section class="products section" id="cat-{cat.id}" style={activeCategory !== 'all' ? 'padding-top: 1rem;' : ''}>
+					{#if activeCategory === 'all'}
+						<h2 class="section__title">{cat.name}</h2>
+					{/if}
+					<div class="products__container container grid">
+						{#each cat.menus as menu}
+							<ProductCard
+								name={menu.name}
+								price={menu.price}
+								image={menu.image ?? undefined}
+								description={menu.description ?? undefined}
+								onAdd={() => cart.add({ menuId: menu.id, name: menu.name, price: menu.price, image: menu.image })}
+							/>
+						{/each}
+					</div>
+				</section>
+			{/if}
 		{/each}
 	</div>
 </main>
