@@ -44,7 +44,7 @@
 				Sesi <span class="font-mono">#{session.id.slice(0, 8)}</span>
 			</h1>
 			<p class="text-sm text-gray-500 dark:text-gray-400">
-				{session.table?.name} · Dibuka {formatDate(session.openedAt)}
+				{session.table?.name ?? session.customerName ?? 'Pelanggan'} · Dibuka {formatDate(session.openedAt)}
 			</p>
 		</div>
 		<div class="ml-2 flex gap-2">
@@ -121,8 +121,13 @@
 				<h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white">Info Sesi</h2>
 				<dl class="space-y-3">
 					<div>
-						<dt class="text-xs font-medium uppercase text-gray-400">Meja</dt>
-						<dd class="mt-1 text-sm text-gray-700 dark:text-gray-300">{session.table?.name ?? '-'}</dd>
+						<dt class="text-xs font-medium uppercase text-gray-400">Identitas</dt>
+						<dd class="mt-1 text-sm text-gray-700 dark:text-gray-300">
+							{session.table?.name ?? '-'}
+							{#if session.customerName}
+								<span class="block text-xs text-gray-400">{session.customerName}</span>
+							{/if}
+						</dd>
 					</div>
 					<div>
 						<dt class="text-xs font-medium uppercase text-gray-400">Pesanan</dt>

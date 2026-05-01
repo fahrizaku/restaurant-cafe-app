@@ -51,8 +51,8 @@ export const tableSessions = sqliteTable('table_sessions', {
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
 	tableId: text('table_id')
-		.notNull()
 		.references(() => tables.id),
+	customerName: text('customer_name'),
 	status: text('status', { enum: ['open', 'processing', 'closed', 'cancelled'] }).notNull().default('open'),
 	paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] }).notNull().default('unpaid'),
 	paymentMethod: text('payment_method', { enum: ['cash', 'qris', 'transfer'] }),

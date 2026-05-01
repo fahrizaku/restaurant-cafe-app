@@ -99,7 +99,9 @@
 								<td class="px-5 py-3 font-mono text-sm text-brand-500">
 									<a href="/admin/orders/{session.id}" class="hover:text-brand-600">#{session.id.slice(0, 8)}</a>
 								</td>
-								<td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{session.table?.name ?? '-'}</td>
+								<td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
+									{session.table?.name ?? session.customerName ?? '-'}
+								</td>
 								<td class="px-5 py-3 text-sm text-gray-500">{session.batches.length} batch · {session.batches.reduce((s, b) => s + b.items.length, 0)} items</td>
 								<td class="px-5 py-3 text-sm font-medium text-gray-800 dark:text-white">{formatRupiah(session.totalPrice)}</td>
 								<td class="px-5 py-3 text-sm text-gray-500">{formatDate(session.openedAt)}</td>

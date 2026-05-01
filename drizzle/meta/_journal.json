@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1777465110427,
-      "tag": "0000_real_lilith",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1746000000000,
-      "tag": "0001_add_payment_fields",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1746100000000,
-      "tag": "0002_table_bill_model",
+      "when": 1777603246146,
+      "tag": "0000_careless_raza",
       "breakpoints": true
     }
   ]
