@@ -25,6 +25,8 @@
 			<i class="ri-shopping-cart-2-line"></i>
 			{#if cart.count > 0}
 				<span class="mobile-nav__badge">{cart.count}</span>
+			{#else}
+				<span class="mobile-nav__badge" style="display:none">0</span>
 			{/if}
 		</div>
 		<span>Keranjang</span>
@@ -58,7 +60,7 @@
 		display: flex;
 		justify-content: space-around;
 		align-items: center;
-		z-index: var(--z-fixed);
+		z-index: 1000; /* Higher than var(--z-fixed) which is 100 */
 		box-shadow: 0 -4px 16px hsla(353, 100%, 8%, .1);
 		border-top: 1px solid var(--container-color);
 	}
