@@ -9,12 +9,13 @@
 	type CartItem = { menuId: string; name: string; price: number; quantity: number; notes: string };
 
 	let selectedTableId = $state(untrack(() => data.tables[0]?.id ?? ''));
+	let customerName = $state('');
 	let selectedCategoryId = $state(untrack(() => data.categories[0]?.id ?? ''));
 	let cart = $state<CartItem[]>([]);
 	let notesOpenId = $state<string | null>(null);
 
 	let activeSession = $derived(
-		data.tables.find((t) => t.id === selectedTableId)?.sessions[0] ?? null
+		selectedTableId ? (data.tables.find((t) => t.id === selectedTableId)?.sessions[0] ?? null) : null
 	);
 	let selectedCategory = $derived(
 		data.categories.find((c) => c.id === selectedCategoryId) ?? data.categories[0] ?? null
@@ -65,17 +66,31 @@
 		</div>
 
 		<!-- Table Selector -->
-		<div class="flex items-center gap-2">
-			<label for="table-select" class="text-sm font-medium text-gray-600 dark:text-gray-400">Pilih Meja:</label>
-			<select
-				id="table-select"
-				bind:value={selectedTableId}
-				class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-			>
-				{#each data.tables as table}
-					<option value={table.id}>{table.name}</option>
-				{/each}
-			</select>
+		<div class="flex items-center gap-3">
+			<div class="flex items-center gap-2">
+				<label for="table-select" class="text-sm font-medium text-gray-600 dark:text-gray-400">Tipe:</label>
+				<select
+					id="table-select"
+					bind:value={selectedTableId}
+					class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+				>
+					<option value="">Bawa Pulang (Takeaway)</option>
+					{#each data.tables as table}
+						<option value={table.id}>{table.name}</option>
+					{/each}
+				</select>
+			</div>
+
+			{#if !selectedTableId}
+				<div class="flex items-center gap-2">
+					<input
+						type="text"
+						bind:value={customerName}
+						placeholder="Nama Pelanggan..."
+						class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+					/>
+				</div>
+			{/if}
 		</div>
 	</div>
 
@@ -223,30 +238,37 @@
 						<span class="text-lg font-bold text-gray-800 dark:text-white">{formatRupiah(cartTotal)}</span>
 					</div>
 
-					{#if !selectedTableId}
-						<p class="text-xs text-error-500">Pilih meja dulu sebelum order</p>
-					{:else}
-						<form
-							method="POST"
-							action="?/order"
-							use:enhance
-						>
-							<input type="hidden" name="tableId" value={selectedTableId} />
-							<input type="hidden" name="items" value={JSON.stringify(cart.map(i => ({
-								menuId: i.menuId,
-								quantity: i.quantity,
-								price: i.price,
-								notes: i.notes || undefined
-							})))} />
-							<button
-								type="submit"
-								disabled={cart.length === 0}
-								class="w-full rounded-xl bg-brand-500 py-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
-							>
-								Place Order — {formatRupiah(cartTotal)}
-							</button>
-						</form>
+					{#if !selectedTableId && !customerName}
+						<p class="text-xs text-error-500 text-center">Isi nama pelanggan untuk Takeaway</p>
 					{/if}
+					
+					<form
+						method="POST"
+						action="?/order"
+						use:enhance={() => {
+							return async ({ update }) => {
+								await update();
+								cart = [];
+								customerName = '';
+							};
+						}}
+					>
+						<input type="hidden" name="tableId" value={selectedTableId} />
+						<input type="hidden" name="customerName" value={customerName} />
+						<input type="hidden" name="items" value={JSON.stringify(cart.map(i => ({
+							menuId: i.menuId,
+							quantity: i.quantity,
+							price: i.price,
+							notes: i.notes || undefined
+						})))} />
+						<button
+							type="submit"
+							disabled={cart.length === 0 || (!selectedTableId && !customerName)}
+							class="w-full rounded-xl bg-brand-500 py-3 text-sm font-semibold text-white hover:bg-brand-600 disabled:opacity-50"
+						>
+							Place Order — {formatRupiah(cartTotal)}
+						</button>
+					</form>
 				</div>
 			{/if}
 		</div>

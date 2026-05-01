@@ -42,9 +42,12 @@ export const actions: Actions = {
 
 		const data = await request.formData();
 		const tableId = data.get('tableId') as string;
+		const customerName = data.get('customerName') as string;
 		const itemsJson = data.get('items') as string;
 
-		if (!tableId || !itemsJson) return fail(400, { message: 'Data tidak lengkap' });
+		if ((!tableId && !customerName) || !itemsJson) {
+			return fail(400, { message: 'Meja atau Nama Pelanggan diperlukan' });
+		}
 
 		let items: Array<{ menuId: string; quantity: number; price: number; notes?: string }>;
 		try {
@@ -58,14 +61,21 @@ export const actions: Actions = {
 		const db = getDb(platform.env.DB);
 		const batchTotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-		let session = await db.query.tableSessions.findFirst({
-			where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
-		});
+		let session = null;
+		if (tableId) {
+			session = await db.query.tableSessions.findFirst({
+				where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
+			});
+		}
 
 		if (!session) {
 			const [newSession] = await db
 				.insert(tableSessions)
-				.values({ tableId, totalPrice: 0 })
+				.values({ 
+					tableId: tableId || null, 
+					customerName: customerName || null,
+					totalPrice: 0 
+				})
 				.returning();
 			session = newSession;
 		}
