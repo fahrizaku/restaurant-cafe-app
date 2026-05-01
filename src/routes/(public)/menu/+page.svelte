@@ -19,84 +19,74 @@
 	<title>Menu — {data.table?.name || 'Restoran'}</title>
 </svelte:head>
 
-<Navbar onCartClick={data.noTable ? undefined : () => (cartOpen = true)} />
+<Navbar onCartClick={() => (cartOpen = true)} />
 
 <main class="main">
-	{#if data.noTable}
-		<!--==================== NO TABLE ====================-->
-		<section class="section">
-			<div class="container no-table">
-				<div class="no-table__icon">
-					<i class="ri-qr-code-line"></i>
-				</div>
-				<h1 class="section__title">Scan QR Code</h1>
-				<p class="no-table__description">
-					Silakan scan QR code di meja Anda untuk melihat menu dan memesan.
-				</p>
-				<a href="/" class="no-table__back">Kembali ke Beranda</a>
-			</div>
-		</section>
-	{:else}
-		<!--==================== MENU TITLE ====================-->
-		<section class="section" id="menu-top" style="padding-bottom: 0;">
-			<div class="container">
-				<h1 class="section__title">Menu Kami</h1>
-				<p style="text-align: center; margin-bottom: 1rem;">
-					{data.table ? `Meja: ${data.table.name}` : ''}
-				</p>
-
-				{#if data.activeSession}
-					<a href="/table/{data.table?.id}" class="bill-banner">
-						<i class="ri-receipt-line"></i>
-						<span>Tagihan saat ini: <strong>{formatRupiah(data.activeSession.totalPrice)}</strong></span>
-						<i class="ri-arrow-right-s-line"></i>
-					</a>
+	<!--==================== MENU TITLE ====================-->
+	<section class="section" id="menu-top" style="padding-bottom: 0;">
+		<div class="container">
+			<h1 class="section__title">Menu Kami</h1>
+			<p style="text-align: center; margin-bottom: 1rem;">
+				{#if data.table}
+					Meja: {data.table.name}
+				{:else if data.activeSession?.customerName}
+					Pesanan: {data.activeSession.customerName}
+				{:else}
+					Selamat Datang!
 				{/if}
-			</div>
-		</section>
+			</p>
 
-		<!-- Category Tabs -->
-		<div class="category-tabs sticky-tabs">
-			<div class="container flex gap-2 overflow-x-auto py-4 no-scrollbar">
-				{#each data.categories as cat}
-					<button
-						onclick={() => {
-							activeCategory = cat.id;
-							document.getElementById(`cat-${cat.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-						}}
-						class="category-btn {activeCategory === cat.id ? 'active' : ''}"
-					>
-						{cat.name}
-					</button>
+			{#if data.activeSession}
+				<a href={data.table ? `/table/${data.table.id}` : `/order/status/${data.activeSession.id}`} class="bill-banner">
+					<i class="ri-receipt-line"></i>
+					<span>Tagihan saat ini: <strong>{formatRupiah(data.activeSession.totalPrice)}</strong></span>
+					<i class="ri-arrow-right-s-line"></i>
+				</a>
+			{/if}
+		</div>
+	</section>
+
+	<!-- Category Tabs -->
+	<div class="category-tabs sticky-tabs">
+		<div class="container flex gap-2 overflow-x-auto py-4 no-scrollbar">
+			{#each data.categories as cat}
+				<button
+					onclick={() => {
+						activeCategory = cat.id;
+						document.getElementById(`cat-${cat.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					}}
+					class="category-btn {activeCategory === cat.id ? 'active' : ''}"
+				>
+					{cat.name}
+				</button>
+			{/each}
+		</div>
+	</div>
+
+	<!--==================== PRODUCTS ====================-->
+	{#each data.categories as cat}
+		<section class="products section" id="cat-{cat.id}" style="padding-top: 4rem;">
+			<h2 class="section__title">{cat.name}</h2>
+			<div class="products__container container grid">
+				{#each cat.menus as menu}
+					<ProductCard
+						name={menu.name}
+						price={menu.price}
+						image={menu.image ?? undefined}
+						description={menu.description ?? undefined}
+						onAdd={() => cart.add({ menuId: menu.id, name: menu.name, price: menu.price, image: menu.image })}
+					/>
 				{/each}
 			</div>
-		</div>
+		</section>
+	{/each}
 
-		<!--==================== PRODUCTS ====================-->
-		{#each data.categories as cat}
-			<section class="products section" id="cat-{cat.id}" style="padding-top: 4rem;">
-				<h2 class="section__title">{cat.name}</h2>
-				<div class="products__container container grid">
-					{#each cat.menus as menu}
-						<ProductCard
-							name={menu.name}
-							price={menu.price}
-							image={menu.image ?? undefined}
-							description={menu.description ?? undefined}
-							onAdd={() => cart.add({ menuId: menu.id, name: menu.name, price: menu.price, image: menu.image })}
-						/>
-					{/each}
-				</div>
-			</section>
-		{/each}
-
-		<!-- Floating Cart Button -->
-		{#if cart.count > 0}
-			<button class="button floating-cart" onclick={() => (cartOpen = true)}>
-				<i class="ri-shopping-cart-2-line"></i>
-				<span>{cart.count}</span>
-			</button>
-		{/if}
+	<!-- Floating Cart Button -->
+	{#if cart.count > 0}
+		<button class="button floating-cart" onclick={() => (cartOpen = true)}>
+			<i class="ri-shopping-cart-2-line"></i>
+			<span>{cart.count}</span>
+		</button>
 	{/if}
 </main>
 
@@ -107,7 +97,7 @@
 </footer>
 
 <!-- Cart Drawer -->
-{#if cartOpen && !data.noTable}
+{#if cartOpen}
 	<div class="cart-drawer-overlay" role="presentation">
 		<div class="cart-drawer-backdrop" onclick={() => (cartOpen = false)} role="presentation"></div>
 		<div class="cart-drawer-content">
@@ -165,10 +155,27 @@
 								await update();
 								ordering = false;
 								cart.clear();
+								cartOpen = false;
 							};
 						}}
+						class="space-y-4"
 					>
 						<input type="hidden" name="tableId" value={data.table?.id} />
+						
+						{#if !data.table && !data.activeSession}
+							<div class="input-group">
+								<label for="customerName" class="input-label">Nama / Info Meja</label>
+								<input 
+									type="text" 
+									name="customerName" 
+									id="customerName"
+									placeholder="Contoh: Budi atau Meja Pojok"
+									required
+									class="text-input"
+								/>
+							</div>
+						{/if}
+
 						<input
 							type="hidden"
 							name="items"
@@ -189,45 +196,20 @@
 {/if}
 
 <style>
-	/* No table */
-	.no-table {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		padding-top: 4rem;
-	}
-
-	.no-table__icon {
-		width: 80px;
-		height: 80px;
+	.space-y-4 > * + * { margin-top: 1rem; }
+	.input-group { display: flex; flex-direction: column; row-gap: .5rem; }
+	.input-label { font-size: var(--smaller-font-size); font-weight: var(--font-medium); color: var(--text-color); }
+	.text-input {
+		width: 100%;
+		padding: .75rem 1rem;
+		border-radius: .5rem;
 		background-color: var(--container-color);
-		color: var(--first-color);
-		font-size: 2.5rem;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		margin-bottom: 1.5rem;
-		box-shadow: 0 8px 24px hsla(353, 100%, 8%, .1);
+		border: 2px solid transparent;
+		color: var(--title-color);
+		font-family: var(--body-font);
+		transition: border-color .3s;
 	}
-
-	.no-table__description {
-		color: var(--text-color-light);
-		max-width: 300px;
-		margin-bottom: 2rem;
-		line-height: 1.6;
-	}
-
-	.no-table__back {
-		font-size: var(--small-font-size);
-		color: var(--text-color-light);
-		font-weight: var(--font-medium);
-	}
-
-	.no-table__back:hover {
-		color: var(--first-color);
-	}
+	.text-input:focus { border-color: var(--first-color); outline: none; }
 
 	/* Bill banner */
 	.bill-banner {

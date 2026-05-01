@@ -87,8 +87,15 @@
 										#{session.id.slice(0, 8)}
 									</a>
 								</td>
-								<td class="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">
-									{session.table?.name ?? '-'}
+								<td class="px-5 py-3">
+									<div class="flex flex-col">
+										<span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+											{session.table?.name ?? session.customerName ?? '-'}
+										</span>
+										{#if session.table && session.customerName}
+											<span class="text-xs text-gray-500">{session.customerName}</span>
+										{/if}
+									</div>
 								</td>
 								<td class="px-5 py-3 text-sm text-gray-500">
 									{session.batches.length} batch · {sessionItemCount(session)} item

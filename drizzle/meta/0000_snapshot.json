@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "07a76530-9aff-454a-ae38-61ecc42880e6",
+  "id": "bf995058-08fe-4a0e-9e4d-d8b926c338dd",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "categories": {
@@ -117,6 +117,66 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "order_batches": {
+      "name": "order_batches",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_id": {
+          "name": "session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "total_price": {
+          "name": "total_price",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "order_batches_session_id_table_sessions_id_fk": {
+          "name": "order_batches_session_id_table_sessions_id_fk",
+          "tableFrom": "order_batches",
+          "tableTo": "table_sessions",
+          "columnsFrom": [
+            "session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "order_items": {
       "name": "order_items",
       "columns": {
@@ -127,8 +187,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "order_id": {
-          "name": "order_id",
+        "batch_id": {
+          "name": "batch_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -165,12 +225,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "order_items_order_id_orders_id_fk": {
-          "name": "order_items_order_id_orders_id_fk",
+        "order_items_batch_id_order_batches_id_fk": {
+          "name": "order_items_batch_id_order_batches_id_fk",
           "tableFrom": "order_items",
-          "tableTo": "orders",
+          "tableTo": "order_batches",
           "columnsFrom": [
-            "order_id"
+            "batch_id"
           ],
           "columnsTo": [
             "id"
@@ -196,8 +256,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "orders": {
-      "name": "orders",
+    "table_sessions": {
+      "name": "table_sessions",
       "columns": {
         "id": {
           "name": "id",
@@ -210,7 +270,14 @@
           "name": "table_id",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "customer_name": {
+          "name": "customer_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "status": {
@@ -219,17 +286,40 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'pending'"
+          "default": "'open'"
+        },
+        "payment_status": {
+          "name": "payment_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'unpaid'"
+        },
+        "payment_method": {
+          "name": "payment_method",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         },
         "total_price": {
           "name": "total_price",
           "type": "real",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "opened_at": {
+          "name": "opened_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
-        "created_at": {
-          "name": "created_at",
+        "closed_at": {
+          "name": "closed_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -238,9 +328,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "orders_table_id_tables_id_fk": {
-          "name": "orders_table_id_tables_id_fk",
-          "tableFrom": "orders",
+        "table_sessions_table_id_tables_id_fk": {
+          "name": "table_sessions_table_id_tables_id_fk",
+          "tableFrom": "table_sessions",
           "tableTo": "tables",
           "columnsFrom": [
             "table_id"

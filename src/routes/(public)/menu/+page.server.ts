@@ -4,19 +4,15 @@ import { eq, and } from 'drizzle-orm';
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ url, platform }) => {
+export const load: PageServerLoad = async ({ url, platform, cookies }) => {
 	const tableId = url.searchParams.get('table');
-
-	if (!tableId) {
-		return { noTable: true, table: null, categories: [], activeSession: null };
-	}
+	const sessionId = cookies.get('session_id');
 
 	if (!platform?.env.DB) error(500, 'Service unavailable');
-
 	const db = getDb(platform.env.DB);
 
-	const [table, categories, activeSession] = await Promise.all([
-		db.query.tables.findFirst({ where: (t, { eq }) => eq(t.id, tableId) }),
+	const [table, categories] = await Promise.all([
+		tableId ? db.query.tables.findFirst({ where: (t, { eq }) => eq(t.id, tableId) }) : null,
 		db.query.categories.findMany({
 			orderBy: (c, { asc }) => [asc(c.order), asc(c.name)],
 			with: {
@@ -25,28 +21,42 @@ export const load: PageServerLoad = async ({ url, platform }) => {
 					orderBy: (m, { asc }) => [asc(m.name)]
 				}
 			}
-		}),
-		db.query.tableSessions.findFirst({
-			where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
 		})
 	]);
 
-	if (!table) error(404, 'Table not found');
+	let activeSession = null;
+	if (tableId) {
+		activeSession = await db.query.tableSessions.findFirst({
+			where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
+		});
+	} else if (sessionId) {
+		activeSession = await db.query.tableSessions.findFirst({
+			where: and(eq(tableSessions.id, sessionId), eq(tableSessions.status, 'open'))
+		});
+	}
 
 	const categoriesWithMenus = categories.filter((c) => c.menus.length > 0);
 
-	return { noTable: false, table, categories: categoriesWithMenus, activeSession: activeSession ?? null };
+	return { 
+		noTable: !tableId, 
+		table, 
+		categories: categoriesWithMenus, 
+		activeSession: activeSession ?? null 
+	};
 };
 
 export const actions: Actions = {
-	order: async ({ request, platform }) => {
+	order: async ({ request, platform, cookies }) => {
 		if (!platform?.env.DB) return fail(500, { message: 'Service unavailable' });
 
 		const data = await request.formData();
 		const tableId = data.get('tableId') as string;
+		const customerName = data.get('customerName') as string;
 		const itemsJson = data.get('items') as string;
 
-		if (!tableId || !itemsJson) return fail(400, { message: 'Invalid order data' });
+		if ((!tableId && !customerName) || !itemsJson) {
+			return fail(400, { message: 'Nama atau Nomor Meja diperlukan' });
+		}
 
 		let items: Array<{ menuId: string; quantity: number; price: number; name: string }>;
 		try {
@@ -55,22 +65,41 @@ export const actions: Actions = {
 			return fail(400, { message: 'Invalid items data' });
 		}
 
-		if (!items.length) return fail(400, { message: 'Cart is empty' });
+		if (!items.length) return fail(400, { message: 'Keranjang belanja kosong' });
 
 		const db = getDb(platform.env.DB);
 		const batchTotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-		// Cari sesi aktif atau buat baru
-		let session = await db.query.tableSessions.findFirst({
-			where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
-		});
+		// Cari sesi aktif
+		let session = null;
+		if (tableId) {
+			session = await db.query.tableSessions.findFirst({
+				where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
+			});
+		} else {
+			const sessionId = cookies.get('session_id');
+			if (sessionId) {
+				session = await db.query.tableSessions.findFirst({
+					where: and(eq(tableSessions.id, sessionId), eq(tableSessions.status, 'open'))
+				});
+			}
+		}
 
 		if (!session) {
 			const [newSession] = await db
 				.insert(tableSessions)
-				.values({ tableId, totalPrice: 0 })
+				.values({ 
+					tableId: tableId || null, 
+					customerName: customerName || null,
+					totalPrice: 0 
+				})
 				.returning();
 			session = newSession;
+			
+			// Jika tidak ada meja, simpan session_id di cookie agar bisa tambah pesanan
+			if (!tableId) {
+				cookies.set('session_id', session.id, { path: '/', maxAge: 60 * 60 * 12 }); // 12 jam
+			}
 		}
 
 		// Buat batch baru
@@ -89,12 +118,16 @@ export const actions: Actions = {
 			}))
 		);
 
-		// Update total sesi, reset paymentStatus jika sebelumnya sudah paid
+		// Update total sesi
 		await db
 			.update(tableSessions)
 			.set({ totalPrice: session.totalPrice + batchTotal, paymentStatus: 'unpaid' })
 			.where(eq(tableSessions.id, session.id));
 
-		redirect(303, `/table/${tableId}`);
+		if (tableId) {
+			redirect(303, `/table/${tableId}`);
+		} else {
+			redirect(303, `/order/status/${session.id}`);
+		}
 	}
 };

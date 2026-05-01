@@ -20,25 +20,25 @@ npx wrangler d1 migrations apply restaurant-db --local
 ## Arsitektur
 
 ```
-tables
-  └── table_sessions  (status: open / processing / closed / cancelled)
+tables (opsional)
+  └── table_sessions  (customerName / tableId, status: open / processing / closed / cancelled)
         └── order_batches  (status: pending / processing / done / cancelled)
               └── order_items
 ```
 
-Satu kunjungan meja = satu sesi. Satu klik "Place Order" = satu batch. Semua batch terakumulasi jadi satu tagihan.
+Satu kunjungan = satu sesi. Identitas sesi bisa berupa nomor meja (dari QR) atau nama pelanggan (input manual).
 
-**Lifecycle:** scan QR → sesi dibuat otomatis → customer order → batch baru → kasir update status → mark paid → close session.
+**Lifecycle:** scan QR / buka link menu → isi nama (jika tidak ada nomor meja) → sesi dibuat → customer order → batch baru → kasir update status → mark paid → close session.
 
 ## Halaman
 
-**Publik:** `/` landing · `/menu?table=T-01` order · `/table/T-01` status bill
+**Publik:** `/` landing · `/menu?table=T-01` order · `/table/T-01` status bill (meja) · `/order/status/[sessionId]` status bill (umum)
 
 **Admin:** `/admin` dashboard · `/admin/orders` daftar sesi · `/admin/orders/[id]` detail · `/admin/menus` · `/admin/categories` · `/admin/tables` · `/admin/pos` POS kasir
 
 ## Status Fitur
 
-Selesai: manajemen menu/kategori/meja, QR order, admin orders, dashboard, POS kasir.
+Selesai: manajemen menu/kategori/meja, QR order, fleksibel identitas (Nama/Meja), admin orders, dashboard, POS kasir.
 
 Belum: laporan harian/bulanan, print struk, multi-user/role.
 
