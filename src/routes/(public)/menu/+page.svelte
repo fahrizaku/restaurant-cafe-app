@@ -2,6 +2,7 @@
 	import { cart } from '$lib/stores/cart.svelte';
 	import { enhance } from '$app/forms';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import MobileNav from '$lib/components/MobileNav.svelte';
 	import ProductCard from '$lib/components/ProductCard.svelte';
 	import { formatRupiah } from '$lib/utils';
 
@@ -80,17 +81,15 @@
 			</div>
 		</section>
 	{/each}
-
-	<!-- Floating Cart Button -->
-	{#if cart.count > 0}
-		<button class="button floating-cart" onclick={() => (cartOpen = true)}>
-			<i class="ri-shopping-cart-2-line"></i>
-			<span>{cart.count}</span>
-		</button>
-	{/if}
 </main>
 
-<footer class="footer">
+<MobileNav 
+	onCartClick={() => (cartOpen = true)} 
+	activeSessionId={data.activeSession?.id} 
+	tableId={data.table?.id} 
+/>
+
+<footer class="footer pb-mobile">
 	<div class="footer__container container">
 		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
 	</div>
@@ -406,4 +405,13 @@
 	}
 
 	.w-full { width: 100%; }
+
+	@media screen and (max-width: 1150px) {
+		.pb-mobile {
+			padding-bottom: 6rem;
+		}
+		.main {
+			padding-bottom: 4rem;
+		}
+	}
 </style>

@@ -2,10 +2,13 @@
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import MobileNav from '$lib/components/MobileNav.svelte';
 	import { formatRupiah } from '$lib/utils';
+	import { cart } from '$lib/stores/cart.svelte';
 
 	let { data } = $props();
 	const session = $derived(data.session);
+	let cartOpen = $state(false);
 
 	const batchStatusLabel: Record<string, string> = {
 		pending: 'Menunggu dapur',
@@ -46,7 +49,7 @@
 	<title>Status Pesanan — {session.customerName || session.table?.name || 'Cafe'}</title>
 </svelte:head>
 
-<Navbar />
+<Navbar onCartClick={() => (cartOpen = true)} />
 
 <main class="main">
 	<section class="section">
@@ -171,13 +174,27 @@
 	</section>
 </main>
 
-<footer class="footer">
+<MobileNav 
+	onCartClick={() => (cartOpen = true)} 
+	activeSessionId={session.id} 
+	tableId={session.tableId} 
+/>
+
+<footer class="footer pb-mobile">
 	<div class="footer__container container">
 		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
 	</div>
 </footer>
 
 <style>
+	@media screen and (max-width: 1150px) {
+		.pb-mobile {
+			padding-bottom: 6rem;
+		}
+		.main {
+			padding-bottom: 4rem;
+		}
+	}
 	/* Reuse styles from table bill */
 	.bill-header { background-color: var(--first-color); padding: 1.5rem; border-radius: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px hsla(353, 100%, 40%, .3); }
 	.bill-header__table { color: hsla(24, 86%, 90%, .9); font-size: var(--small-font-size); display: flex; align-items: center; column-gap: .25rem; margin-bottom: .5rem; }
