@@ -25,8 +25,6 @@
 			<i class="ri-shopping-cart-2-line"></i>
 			{#if cart.count > 0}
 				<span class="mobile-nav__badge">{cart.count}</span>
-			{#else}
-				<span class="mobile-nav__badge" style="display:none">0</span>
 			{/if}
 		</div>
 		<span>Keranjang</span>
