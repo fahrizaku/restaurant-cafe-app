@@ -280,31 +280,6 @@
 	.no-scrollbar::-webkit-scrollbar { display: none; }
 	.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-	/* Floating cart */
-	.floating-cart {
-		position: fixed;
-		bottom: 2rem;
-		right: 1.5rem;
-		z-index: var(--z-fixed);
-		display: flex;
-		align-items: center;
-		column-gap: 0.5rem;
-		padding: 1rem 1.5rem;
-		border-radius: 4rem;
-		box-shadow: 0 8px 32px hsla(353, 100%, 40%, 0.4);
-	}
-
-	.floating-cart i { font-size: 1.25rem; }
-
-	.floating-cart span {
-		background-color: var(--white-color);
-		color: var(--first-color);
-		padding: 2px 8px;
-		border-radius: 1rem;
-		font-size: var(--smaller-font-size);
-		font-weight: var(--font-semi-bold);
-	}
-
 	/* Cart drawer */
 	.cart-drawer-overlay {
 		position: fixed;
