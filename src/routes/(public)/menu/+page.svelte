@@ -151,16 +151,18 @@
 						action="?/order"
 						use:enhance={() => {
 							ordering = true;
-							return async ({ update }) => {
+							return async ({ update, result }) => {
 								await update();
 								ordering = false;
-								cart.clear();
-								cartOpen = false;
+								if (result.type === 'success' || result.type === 'redirect') {
+									cart.clear();
+									cartOpen = false;
+								}
 							};
 						}}
 						class="space-y-4"
 					>
-						<input type="hidden" name="tableId" value={data.table?.id} />
+						<input type="hidden" name="tableId" value={data.table?.id || ''} />
 						
 						{#if !data.table && !data.activeSession}
 							<div class="input-group">

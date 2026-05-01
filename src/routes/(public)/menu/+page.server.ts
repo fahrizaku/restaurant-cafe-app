@@ -54,9 +54,7 @@ export const actions: Actions = {
 		const customerName = data.get('customerName') as string;
 		const itemsJson = data.get('items') as string;
 
-		if ((!tableId && !customerName) || !itemsJson) {
-			return fail(400, { message: 'Nama atau Nomor Meja diperlukan' });
-		}
+		if (!itemsJson) return fail(400, { message: 'Invalid order data' });
 
 		let items: Array<{ menuId: string; quantity: number; price: number; name: string }>;
 		try {
@@ -85,7 +83,12 @@ export const actions: Actions = {
 			}
 		}
 
+		// Jika tidak ada sesi aktif, baru kita wajibkan identitas
 		if (!session) {
+			if (!tableId && !customerName) {
+				return fail(400, { message: 'Nama atau Nomor Meja diperlukan' });
+			}
+
 			const [newSession] = await db
 				.insert(tableSessions)
 				.values({ 
