@@ -8,7 +8,7 @@
 </script>
 
 <div class="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 font-outfit">
-	<Sidebar {sidebarToggle} />
+	<Sidebar {sidebarToggle} onClose={() => sidebarToggle = false} />
 
 	{#if sidebarToggle}
 		<div

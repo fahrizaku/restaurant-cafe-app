@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 
-	let { sidebarToggle = false }: { sidebarToggle: boolean } = $props();
+	let { sidebarToggle = false, onClose }: { sidebarToggle: boolean, onClose?: () => void } = $props();
 
 	const navItems = [
 		{ label: 'Dashboard', href: '/admin', icon: 'dashboard' },
@@ -44,6 +44,7 @@
 								class="menu-item group"
 								class:menu-item-active={isActive(item.href)}
 								class:menu-item-inactive={!isActive(item.href)}
+								onclick={onClose}
 							>
 								{#if item.icon === 'dashboard'}
 									<svg class="size-6" class:menu-item-icon-active={isActive(item.href)} class:menu-item-icon-inactive={!isActive(item.href)} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
