@@ -8,9 +8,10 @@
 		tableId?: string | null;
 	}
 
-	let { onCartClick, activeSessionId, tableId }: Props = $props();
+	let { activeSessionId, tableId }: Props = $props();
 
 	const isMenuPage = $derived(page.url.pathname === '/menu');
+	const isCartPage = $derived(page.url.pathname === '/cart');
 	const isStatusPage = $derived(page.url.pathname.startsWith('/order/status') || page.url.pathname.startsWith('/table/'));
 </script>
 
@@ -20,7 +21,7 @@
 		<span>Menu</span>
 	</a>
 
-	<button class="mobile-nav__item" onclick={onCartClick}>
+	<a href="/cart{tableId ? '?table=' + tableId : ''}" class="mobile-nav__item" class:active={isCartPage}>
 		<div class="mobile-nav__icon-wrapper">
 			<i class="ri-shopping-cart-2-line"></i>
 			{#if cart.count > 0}
@@ -28,7 +29,7 @@
 			{/if}
 		</div>
 		<span>Keranjang</span>
-	</button>
+	</a>
 
 	{#if activeSessionId || tableId}
 		<a 

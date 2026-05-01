@@ -8,7 +8,6 @@
 
 	let { data } = $props();
 	const session = $derived(data.session);
-	let cartOpen = $state(false);
 
 	const batchStatusLabel: Record<string, string> = {
 		pending: 'Menunggu dapur',
@@ -49,9 +48,9 @@
 	<title>Status Pesanan — {session.customerName || session.table?.name || 'Cafe'}</title>
 </svelte:head>
 
-<Navbar onCartClick={() => (cartOpen = true)} />
+<Navbar />
 
-<main class="main">
+<main class="main has-mobile-nav">
 	<section class="section">
 		<div class="container">
 			<!-- Header bill -->
@@ -175,7 +174,6 @@
 </main>
 
 <MobileNav 
-	onCartClick={() => (cartOpen = true)} 
 	activeSessionId={session.id} 
 	tableId={session.tableId} 
 />
