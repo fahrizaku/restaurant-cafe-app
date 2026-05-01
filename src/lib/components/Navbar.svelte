@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { cart } from '$lib/stores/cart.svelte';
 	import { page } from '$app/state';
 
 	let isMenuOpen = $state(false);
@@ -58,14 +57,6 @@
 		</div>
 
 		<div class="nav__buttons">
-			<!-- Cart Button -->
-			<a href="/cart{tableId ? '?table=' + tableId : ''}" class="nav__cart" aria-label="View Cart">
-				<i class="ri-shopping-bag-3-line"></i>
-				{#if cart.count > 0}
-					<span class="nav__cart-badge">{cart.count}</span>
-				{/if}
-			</a>
-
 			<!-- Toggle button -->
 			<div class="nav__toggle" id="nav-toggle" onclick={toggleMenu} aria-hidden="true">
 				<i class="ri-apps-2-fill"></i>
@@ -79,27 +70,5 @@
 		display: flex;
 		align-items: center;
 		column-gap: 1rem;
-	}
-
-	.nav__cart {
-		position: relative;
-		background: none;
-		font-size: 1.5rem;
-		color: var(--title-color);
-		cursor: pointer;
-		display: inline-flex;
-	}
-
-	.nav__cart-badge {
-		position: absolute;
-		top: -4px;
-		right: -8px;
-		background-color: var(--first-color);
-		color: var(--white-color);
-		font-size: 0.7rem;
-		padding: 2px 6px;
-		border-radius: 50%;
-		font-weight: var(--font-semi-bold);
-		font-family: var(--body-font);
 	}
 </style>
