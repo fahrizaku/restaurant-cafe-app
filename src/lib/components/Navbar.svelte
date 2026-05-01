@@ -1,15 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { cart } from '$lib/stores/cart.svelte';
-
-	interface Props {
-		onCartClick?: () => void;
-	}
-
-	let { onCartClick }: Props = $props();
+	import { page } from '$app/state';
 
 	let isMenuOpen = $state(false);
 	let isShadowHeader = $state(false);
+
+	const tableId = $derived(page.url.searchParams.get('table'));
 
 	function toggleMenu() {
 		isMenuOpen = !isMenuOpen;
@@ -47,7 +44,7 @@
 					<a href="/#popular" class="nav__link" onclick={closeMenu}>Popular</a>
 				</li>
 				<li>
-					<a href="/menu" class="nav__link" onclick={closeMenu}>Menu</a>
+					<a href="/menu{tableId ? '?table=' + tableId : ''}" class="nav__link" onclick={closeMenu}>Menu</a>
 				</li>
 				<li>
 					<a href="/#contact" class="nav__link" onclick={closeMenu}>Contact</a>
@@ -62,12 +59,12 @@
 
 		<div class="nav__buttons">
 			<!-- Cart Button -->
-			<button class="nav__cart" onclick={onCartClick} aria-label="View Cart">
+			<a href="/cart{tableId ? '?table=' + tableId : ''}" class="nav__cart" aria-label="View Cart">
 				<i class="ri-shopping-bag-3-line"></i>
 				{#if cart.count > 0}
 					<span class="nav__cart-badge">{cart.count}</span>
 				{/if}
-			</button>
+			</a>
 
 			<!-- Toggle button -->
 			<div class="nav__toggle" id="nav-toggle" onclick={toggleMenu} aria-hidden="true">
