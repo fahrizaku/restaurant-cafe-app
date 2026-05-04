@@ -43,7 +43,9 @@
 					<a href="/#popular" class="nav__link" onclick={closeMenu}>Popular</a>
 				</li>
 				<li>
-					<a href="/menu{tableId ? '?table=' + tableId : ''}" class="nav__link" onclick={closeMenu}>Menu</a>
+					<a href="/menu{tableId ? '?table=' + tableId : ''}" class="nav__link" onclick={closeMenu}
+						>Menu</a
+					>
 				</li>
 				<li>
 					<a href="/#contact" class="nav__link" onclick={closeMenu}>Contact</a>

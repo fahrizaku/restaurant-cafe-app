@@ -18,8 +18,8 @@
 			<div class="home__data">
 				<h1 class="home__title">Crispy And <br /> Delicious Pizzas</h1>
 				<p class="home__description">
-					Order the best pizzas to end your hunger and make your family moments more memorable.
-					Scan the QR code at your table to start ordering.
+					Order the best pizzas to end your hunger and make your family moments more memorable. Scan
+					the QR code at your table to start ordering.
 				</p>
 				<div class="home__cta">
 					<i class="ri-qr-code-line home__cta-icon"></i>
@@ -52,31 +52,34 @@
 						<i class="ri-qr-code-line"></i>
 					</div>
 					<h3 class="steps__title">Scan QR Code</h3>
-					<p class="steps__description">Scan the QR code on your table to open the menu for your table.</p>
+					<p class="steps__description">
+						Scan the QR code on your table to open the menu for your table.
+					</p>
 				</div>
 				<div class="steps__card">
 					<div class="steps__icon">
 						<i class="ri-restaurant-2-line"></i>
 					</div>
 					<h3 class="steps__title">Choose Your Food</h3>
-					<p class="steps__description">Browse the menu, add your favorite items to the cart, and place your order.</p>
+					<p class="steps__description">
+						Browse the menu, add your favorite items to the cart, and place your order.
+					</p>
 				</div>
 				<div class="steps__card">
 					<div class="steps__icon">
 						<i class="ri-bill-line"></i>
 					</div>
 					<h3 class="steps__title">Pay When Ready</h3>
-					<p class="steps__description">Order as many times as you like. Pay the full bill at the end of your visit.</p>
+					<p class="steps__description">
+						Order as many times as you like. Pay the full bill at the end of your visit.
+					</p>
 				</div>
 			</div>
 		</div>
 	</section>
 </main>
 
-<MobileNav 
-	activeSessionId={data.activeSessionId} 
-	tableId={data.tableId} 
-/>
+<MobileNav activeSessionId={data.activeSessionId} tableId={data.tableId} />
 
 <footer class="footer pb-mobile">
 	<div class="footer__container container">
@@ -85,24 +88,30 @@
 </footer>
 
 <style>
-	.pb-mobile { padding-bottom: 2rem; }
+	.pb-mobile {
+		padding-bottom: 2rem;
+	}
 
 	@media screen and (max-width: 1150px) {
-		.pb-mobile { padding-bottom: 6rem; }
-		.main { padding-bottom: 4rem; }
+		.pb-mobile {
+			padding-bottom: 6rem;
+		}
+		.main {
+			padding-bottom: 4rem;
+		}
 	}
 
 	.home__cta {
 		display: inline-flex;
 		align-items: center;
-		column-gap: .75rem;
+		column-gap: 0.75rem;
 		background-color: var(--container-color);
-		padding: .75rem 1.25rem;
+		padding: 0.75rem 1.25rem;
 		border-radius: 4rem;
 		font-size: var(--small-font-size);
 		font-weight: var(--font-medium);
 		color: var(--text-color);
-		box-shadow: 0 4px 16px hsla(353, 100%, 8%, .08);
+		box-shadow: 0 4px 16px hsla(353, 100%, 8%, 0.08);
 	}
 
 	.home__cta-icon {
@@ -120,7 +129,7 @@
 		padding: 2rem 1.5rem;
 		border-radius: 1.5rem;
 		text-align: center;
-		box-shadow: 0 8px 24px hsla(353, 100%, 8%, .08);
+		box-shadow: 0 8px 24px hsla(353, 100%, 8%, 0.08);
 	}
 
 	.steps__icon {
@@ -134,12 +143,12 @@
 		justify-content: center;
 		border-radius: 50%;
 		margin: 0 auto 1.25rem;
-		box-shadow: 0 8px 24px hsla(353, 100%, 40%, .3);
+		box-shadow: 0 8px 24px hsla(353, 100%, 40%, 0.3);
 	}
 
 	.steps__title {
 		font-size: var(--h3-font-size);
-		margin-bottom: .5rem;
+		margin-bottom: 0.5rem;
 	}
 
 	.steps__description {

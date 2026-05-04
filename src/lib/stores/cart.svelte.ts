@@ -27,7 +27,10 @@ function createCart() {
 	}
 
 	function updateQty(menuId: string, qty: number) {
-		if (qty <= 0) { remove(menuId); return; }
+		if (qty <= 0) {
+			remove(menuId);
+			return;
+		}
 		const item = items.find((i) => i.menuId === menuId);
 		if (item) item.quantity = qty;
 	}
@@ -37,9 +40,15 @@ function createCart() {
 	}
 
 	return {
-		get items() { return items; },
-		get count() { return count; },
-		get total() { return total; },
+		get items() {
+			return items;
+		},
+		get count() {
+			return count;
+		},
+		get total() {
+			return total;
+		},
 		add,
 		remove,
 		updateQty,

@@ -41,7 +41,7 @@
 		return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 	}
 
-	const activeBatches = $derived(session?.batches.filter(b => b.status !== 'cancelled') ?? []);
+	const activeBatches = $derived(session?.batches.filter((b) => b.status !== 'cancelled') ?? []);
 </script>
 
 <svelte:head>
@@ -57,7 +57,8 @@
 			<div class="bill-header">
 				<div class="bill-header__info">
 					<p class="bill-header__table">
-						<i class="ri-user-fill"></i> {session.customerName || (session.table ? `Meja: ${session.table.name}` : 'Pelanggan')}
+						<i class="ri-user-fill"></i>
+						{session.customerName || (session.table ? `Meja: ${session.table.name}` : 'Pelanggan')}
 					</p>
 					<div class="bill-header__badges">
 						{#if session.status === 'processing'}
@@ -73,7 +74,7 @@
 								<i class="ri-checkbox-circle-fill"></i> Selesai
 							</span>
 						{/if}
-						
+
 						{#if session.paymentStatus === 'paid'}
 							<span class="badge badge--paid">
 								<i class="ri-checkbox-circle-fill"></i> Lunas
@@ -112,7 +113,9 @@
 									/>
 									<div class="batch__item-info">
 										<p class="batch__item-name">{item.menu?.name ?? 'Unknown'}</p>
-										<p class="batch__item-qty">{item.quantity} × {formatRupiah(item.priceAtTime)}</p>
+										<p class="batch__item-qty">
+											{item.quantity} × {formatRupiah(item.priceAtTime)}
+										</p>
 									</div>
 									<span class="batch__item-total">
 										{formatRupiah(item.priceAtTime * item.quantity)}
@@ -133,7 +136,9 @@
 			<div class="bill-summary">
 				<div class="bill-summary__row">
 					<span>Total Items</span>
-					<span>{activeBatches.reduce((s, b) => s + b.items.reduce((si, i) => si + i.quantity, 0), 0)} pcs</span>
+					<span
+						>{activeBatches.reduce((s, b) => s + b.items.reduce((si, i) => si + i.quantity, 0), 0)} pcs</span
+					>
 				</div>
 				<div class="bill-summary__total">
 					<span>Total</span>
@@ -173,10 +178,7 @@
 	</section>
 </main>
 
-<MobileNav 
-	activeSessionId={session.id} 
-	tableId={session.tableId} 
-/>
+<MobileNav activeSessionId={session.id} tableId={session.tableId} />
 
 <footer class="footer pb-mobile">
 	<div class="footer__container container">
@@ -194,51 +196,268 @@
 		}
 	}
 	/* Reuse styles from table bill */
-	.bill-header { background-color: var(--first-color); padding: 1.5rem; border-radius: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 8px 24px hsla(353, 100%, 40%, .3); }
-	.bill-header__table { color: hsla(24, 86%, 90%, .9); font-size: var(--small-font-size); display: flex; align-items: center; column-gap: .25rem; margin-bottom: .5rem; }
-	.bill-header__badges { display: flex; gap: .5rem; flex-wrap: wrap; }
-	.badge { display: inline-flex; align-items: center; column-gap: .25rem; padding: .25rem .75rem; border-radius: 4rem; font-size: var(--smaller-font-size); font-weight: var(--font-medium); }
-	.badge--open { background-color: hsla(24, 86%, 90%, .2); color: var(--white-color); }
-	.badge--processing { background-color: hsla(24, 86%, 90%, .2); color: var(--white-color); }
-	.badge--paid { background-color: hsla(142, 71%, 45%, .8); color: white; }
-	.bill-header__total { text-align: right; }
-	.bill-header__total-label { display: block; font-size: var(--smaller-font-size); color: hsla(24, 86%, 90%, .8); margin-bottom: .25rem; }
-	.bill-header__total-value { font-family: var(--second-font); font-size: var(--bigger-font-size); color: var(--white-color); }
-	.batches { display: flex; flex-direction: column; row-gap: 1rem; margin-bottom: 1.5rem; }
-	.batch { background-color: var(--container-color); border-radius: 1.25rem; overflow: hidden; box-shadow: 0 4px 16px hsla(353, 100%, 8%, .06); }
-	.batch--cancelled { opacity: .5; }
-	.batch__header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid hsla(353, 16%, 32%, .08); }
-	.batch__meta { display: flex; align-items: center; column-gap: .75rem; }
-	.batch__number { font-weight: var(--font-semi-bold); font-size: var(--small-font-size); color: var(--title-color); }
-	.batch__time { font-size: var(--smaller-font-size); color: var(--text-color-light); }
-	.batch__status { display: inline-flex; align-items: center; column-gap: .25rem; padding: .25rem .75rem; border-radius: 4rem; font-size: var(--smaller-font-size); font-weight: var(--font-medium); }
-	.status--pending { background-color: hsla(38, 95%, 55%, .12); color: hsl(38, 85%, 40%); }
-	.status--processing { background-color: hsla(220, 90%, 60%, .12); color: hsl(220, 70%, 50%); }
-	.status--done { background-color: hsla(142, 71%, 45%, .12); color: hsl(142, 60%, 35%); }
-	.status--cancelled { background-color: hsla(0, 80%, 55%, .1); color: hsl(0, 65%, 50%); }
-	.batch__items { padding: .75rem 1.25rem; display: flex; flex-direction: column; row-gap: .75rem; }
-	.batch__item { display: flex; align-items: center; column-gap: .75rem; }
-	.batch__item-img { width: 44px; height: 44px; border-radius: .75rem; object-fit: cover; filter: var(--shadow-small-img); }
-	.batch__item-info { flex: 1; }
-	.batch__item-name { font-size: var(--small-font-size); font-weight: var(--font-semi-bold); color: var(--title-color); }
-	.batch__item-qty { font-size: var(--smaller-font-size); color: var(--text-color-light); }
-	.batch__item-total { font-family: var(--second-font); font-size: var(--small-font-size); color: var(--title-color); }
-	.batch__footer { display: flex; justify-content: space-between; align-items: center; padding: .75rem 1.25rem; border-top: 1px solid hsla(353, 16%, 32%, .08); }
-	.batch__subtotal { font-size: var(--smaller-font-size); color: var(--text-color-light); }
-	.batch__subtotal-value { font-family: var(--second-font); font-size: var(--normal-font-size); color: var(--title-color); }
-	.bill-summary { background-color: var(--container-color); border-radius: 1.25rem; padding: 1.25rem; margin-bottom: 1.5rem; box-shadow: 0 4px 16px hsla(353, 100%, 8%, .06); }
-	.bill-summary__row { display: flex; justify-content: space-between; font-size: var(--small-font-size); color: var(--text-color-light); margin-bottom: .5rem; }
-	.bill-summary__total { display: flex; justify-content: space-between; font-family: var(--second-font); font-size: var(--h2-font-size); color: var(--title-color); padding-top: .75rem; margin-top: .5rem; border-top: 1px solid hsla(353, 16%, 32%, .1); margin-bottom: 1rem; }
-	.bill-pay-hint { display: flex; align-items: flex-start; column-gap: .5rem; font-size: var(--smaller-font-size); color: var(--text-color-light); background-color: hsla(353, 16%, 32%, .06); padding: .75rem 1rem; border-radius: .75rem; }
-	.bill-pay-hint i { color: var(--first-color); font-size: 1rem; flex-shrink: 0; margin-top: .1rem; }
-	.bill-paid-badge { display: flex; align-items: center; column-gap: .5rem; justify-content: center; font-size: var(--small-font-size); font-weight: var(--font-medium); color: #16a34a; background-color: hsla(142, 71%, 45%, .1); padding: .75rem 1rem; border-radius: .75rem; }
-	.bill-paid-badge i { font-size: 1.1rem; }
-	.bill-actions { display: flex; flex-direction: column; align-items: center; row-gap: 1rem; }
-	.bill-actions .button { display: inline-flex; align-items: center; column-gap: .5rem; }
-	.bill-processing-hint { display: flex; align-items: center; column-gap: .5rem; font-size: var(--small-font-size); font-weight: var(--font-medium); color: var(--first-color); background-color: hsla(353, 100%, 40%, .06); padding: .75rem 1.25rem; border-radius: .75rem; width: 100%; justify-content: center; }
-	.bill-refresh-hint { display: flex; align-items: center; column-gap: .25rem; font-size: var(--smaller-font-size); color: var(--text-color-light); }
+	.bill-header {
+		background-color: var(--first-color);
+		padding: 1.5rem;
+		border-radius: 1.5rem;
+		margin-bottom: 1.5rem;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		box-shadow: 0 8px 24px hsla(353, 100%, 40%, 0.3);
+	}
+	.bill-header__table {
+		color: hsla(24, 86%, 90%, 0.9);
+		font-size: var(--small-font-size);
+		display: flex;
+		align-items: center;
+		column-gap: 0.25rem;
+		margin-bottom: 0.5rem;
+	}
+	.bill-header__badges {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		column-gap: 0.25rem;
+		padding: 0.25rem 0.75rem;
+		border-radius: 4rem;
+		font-size: var(--smaller-font-size);
+		font-weight: var(--font-medium);
+	}
+	.badge--open {
+		background-color: hsla(24, 86%, 90%, 0.2);
+		color: var(--white-color);
+	}
+	.badge--processing {
+		background-color: hsla(24, 86%, 90%, 0.2);
+		color: var(--white-color);
+	}
+	.badge--paid {
+		background-color: hsla(142, 71%, 45%, 0.8);
+		color: white;
+	}
+	.bill-header__total {
+		text-align: right;
+	}
+	.bill-header__total-label {
+		display: block;
+		font-size: var(--smaller-font-size);
+		color: hsla(24, 86%, 90%, 0.8);
+		margin-bottom: 0.25rem;
+	}
+	.bill-header__total-value {
+		font-family: var(--second-font);
+		font-size: var(--bigger-font-size);
+		color: var(--white-color);
+	}
+	.batches {
+		display: flex;
+		flex-direction: column;
+		row-gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+	.batch {
+		background-color: var(--container-color);
+		border-radius: 1.25rem;
+		overflow: hidden;
+		box-shadow: 0 4px 16px hsla(353, 100%, 8%, 0.06);
+	}
+	.batch--cancelled {
+		opacity: 0.5;
+	}
+	.batch__header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 1.25rem;
+		border-bottom: 1px solid hsla(353, 16%, 32%, 0.08);
+	}
+	.batch__meta {
+		display: flex;
+		align-items: center;
+		column-gap: 0.75rem;
+	}
+	.batch__number {
+		font-weight: var(--font-semi-bold);
+		font-size: var(--small-font-size);
+		color: var(--title-color);
+	}
+	.batch__time {
+		font-size: var(--smaller-font-size);
+		color: var(--text-color-light);
+	}
+	.batch__status {
+		display: inline-flex;
+		align-items: center;
+		column-gap: 0.25rem;
+		padding: 0.25rem 0.75rem;
+		border-radius: 4rem;
+		font-size: var(--smaller-font-size);
+		font-weight: var(--font-medium);
+	}
+	.status--pending {
+		background-color: hsla(38, 95%, 55%, 0.12);
+		color: hsl(38, 85%, 40%);
+	}
+	.status--processing {
+		background-color: hsla(220, 90%, 60%, 0.12);
+		color: hsl(220, 70%, 50%);
+	}
+	.status--done {
+		background-color: hsla(142, 71%, 45%, 0.12);
+		color: hsl(142, 60%, 35%);
+	}
+	.status--cancelled {
+		background-color: hsla(0, 80%, 55%, 0.1);
+		color: hsl(0, 65%, 50%);
+	}
+	.batch__items {
+		padding: 0.75rem 1.25rem;
+		display: flex;
+		flex-direction: column;
+		row-gap: 0.75rem;
+	}
+	.batch__item {
+		display: flex;
+		align-items: center;
+		column-gap: 0.75rem;
+	}
+	.batch__item-img {
+		width: 44px;
+		height: 44px;
+		border-radius: 0.75rem;
+		object-fit: cover;
+		filter: var(--shadow-small-img);
+	}
+	.batch__item-info {
+		flex: 1;
+	}
+	.batch__item-name {
+		font-size: var(--small-font-size);
+		font-weight: var(--font-semi-bold);
+		color: var(--title-color);
+	}
+	.batch__item-qty {
+		font-size: var(--smaller-font-size);
+		color: var(--text-color-light);
+	}
+	.batch__item-total {
+		font-family: var(--second-font);
+		font-size: var(--small-font-size);
+		color: var(--title-color);
+	}
+	.batch__footer {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.75rem 1.25rem;
+		border-top: 1px solid hsla(353, 16%, 32%, 0.08);
+	}
+	.batch__subtotal {
+		font-size: var(--smaller-font-size);
+		color: var(--text-color-light);
+	}
+	.batch__subtotal-value {
+		font-family: var(--second-font);
+		font-size: var(--normal-font-size);
+		color: var(--title-color);
+	}
+	.bill-summary {
+		background-color: var(--container-color);
+		border-radius: 1.25rem;
+		padding: 1.25rem;
+		margin-bottom: 1.5rem;
+		box-shadow: 0 4px 16px hsla(353, 100%, 8%, 0.06);
+	}
+	.bill-summary__row {
+		display: flex;
+		justify-content: space-between;
+		font-size: var(--small-font-size);
+		color: var(--text-color-light);
+		margin-bottom: 0.5rem;
+	}
+	.bill-summary__total {
+		display: flex;
+		justify-content: space-between;
+		font-family: var(--second-font);
+		font-size: var(--h2-font-size);
+		color: var(--title-color);
+		padding-top: 0.75rem;
+		margin-top: 0.5rem;
+		border-top: 1px solid hsla(353, 16%, 32%, 0.1);
+		margin-bottom: 1rem;
+	}
+	.bill-pay-hint {
+		display: flex;
+		align-items: flex-start;
+		column-gap: 0.5rem;
+		font-size: var(--smaller-font-size);
+		color: var(--text-color-light);
+		background-color: hsla(353, 16%, 32%, 0.06);
+		padding: 0.75rem 1rem;
+		border-radius: 0.75rem;
+	}
+	.bill-pay-hint i {
+		color: var(--first-color);
+		font-size: 1rem;
+		flex-shrink: 0;
+		margin-top: 0.1rem;
+	}
+	.bill-paid-badge {
+		display: flex;
+		align-items: center;
+		column-gap: 0.5rem;
+		justify-content: center;
+		font-size: var(--small-font-size);
+		font-weight: var(--font-medium);
+		color: #16a34a;
+		background-color: hsla(142, 71%, 45%, 0.1);
+		padding: 0.75rem 1rem;
+		border-radius: 0.75rem;
+	}
+	.bill-paid-badge i {
+		font-size: 1.1rem;
+	}
+	.bill-actions {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		row-gap: 1rem;
+	}
+	.bill-actions .button {
+		display: inline-flex;
+		align-items: center;
+		column-gap: 0.5rem;
+	}
+	.bill-processing-hint {
+		display: flex;
+		align-items: center;
+		column-gap: 0.5rem;
+		font-size: var(--small-font-size);
+		font-weight: var(--font-medium);
+		color: var(--first-color);
+		background-color: hsla(353, 100%, 40%, 0.06);
+		padding: 0.75rem 1.25rem;
+		border-radius: 0.75rem;
+		width: 100%;
+		justify-content: center;
+	}
+	.bill-refresh-hint {
+		display: flex;
+		align-items: center;
+		column-gap: 0.25rem;
+		font-size: var(--smaller-font-size);
+		color: var(--text-color-light);
+	}
 
 	@media screen and (min-width: 576px) {
-		.container { max-width: 480px; margin-inline: auto; }
+		.container {
+			max-width: 480px;
+			margin-inline: auto;
+		}
 	}
 </style>

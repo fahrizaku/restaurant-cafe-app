@@ -35,9 +35,9 @@
 	.products__card {
 		position: relative;
 		background-color: var(--container-color);
-		padding: 4rem .75rem 1.25rem .75rem;
+		padding: 4rem 0.75rem 1.25rem 0.75rem;
 		border-radius: 1.5rem;
-		box-shadow: 0 8px 24px hsla(353, 100%, 8%, .1);
+		box-shadow: 0 8px 24px hsla(353, 100%, 8%, 0.1);
 		display: flex;
 		flex-direction: column;
 		height: 100%;
@@ -48,7 +48,7 @@
 		flex-direction: column;
 		flex: 1;
 		justify-content: space-between;
-		row-gap: .75rem;
+		row-gap: 0.75rem;
 	}
 
 	.products__img {
@@ -59,12 +59,12 @@
 		right: 0;
 		margin: 0 auto;
 		filter: var(--shadow-small-img);
-		transition: transform .4s;
+		transition: transform 0.4s;
 	}
 
 	.products__name {
 		font-size: var(--h3-font-size);
-		margin-bottom: .25rem;
+		margin-bottom: 0.25rem;
 		word-break: break-word;
 	}
 
@@ -72,7 +72,7 @@
 		font-size: var(--smaller-font-size);
 		color: var(--text-color-light);
 		line-height: 1.4;
-		margin-bottom: .5rem;
+		margin-bottom: 0.5rem;
 		display: -webkit-box;
 		line-clamp: 2;
 		-webkit-line-clamp: 2;
@@ -84,7 +84,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		column-gap: .5rem;
+		column-gap: 0.5rem;
 		margin-top: auto;
 	}
 
@@ -101,14 +101,16 @@
 		color: var(--white-color);
 		width: 32px;
 		height: 32px;
-		border-radius: .5rem;
+		border-radius: 0.5rem;
 		font-size: 1.25rem;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 4px 16px hsla(353, 100%, 40%, .4);
+		box-shadow: 0 4px 16px hsla(353, 100%, 40%, 0.4);
 		cursor: pointer;
-		transition: background-color .4s, transform .2s;
+		transition:
+			background-color 0.4s,
+			transform 0.2s;
 		flex-shrink: 0;
 	}
 
@@ -117,18 +119,18 @@
 	}
 
 	.products__button:active {
-		transform: scale(.9);
+		transform: scale(0.9);
 	}
 
 	.products__card:hover .products__img {
-		transform: translateY(-.5rem);
+		transform: translateY(-0.5rem);
 	}
 
 	@media screen and (min-width: 1150px) {
 		.products__img {
 			width: 120px;
 		}
-		
+
 		.products__price {
 			font-size: var(--h1-font-size);
 		}

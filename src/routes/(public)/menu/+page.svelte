@@ -35,9 +35,14 @@
 			</p>
 
 			{#if data.activeSession}
-				<a href={data.table ? `/table/${data.table.id}` : `/order/status/${data.activeSession.id}`} class="bill-banner">
+				<a
+					href={data.table ? `/table/${data.table.id}` : `/order/status/${data.activeSession.id}`}
+					class="bill-banner"
+				>
 					<i class="ri-receipt-line"></i>
-					<span>Tagihan saat ini: <strong>{formatRupiah(data.activeSession.totalPrice)}</strong></span>
+					<span
+						>Tagihan saat ini: <strong>{formatRupiah(data.activeSession.totalPrice)}</strong></span
+					>
 					<i class="ri-arrow-right-s-line"></i>
 				</a>
 			{/if}
@@ -46,7 +51,7 @@
 
 	<!-- Category Tabs -->
 	<div class="category-tabs sticky-tabs">
-		<div class="container flex gap-4 overflow-x-auto py-3 no-scrollbar">
+		<div class="no-scrollbar container flex gap-4 overflow-x-auto py-3">
 			<button
 				onclick={() => (activeCategory = 'all')}
 				class="category-btn {activeCategory === 'all' ? 'active' : ''}"
@@ -79,7 +84,11 @@
 	<div class="products-wrapper">
 		{#each data.categories as cat}
 			{#if activeCategory === 'all' || activeCategory === cat.id}
-				<section class="products section" id="cat-{cat.id}" style={activeCategory !== 'all' ? 'padding-top: 1rem;' : ''}>
+				<section
+					class="products section"
+					id="cat-{cat.id}"
+					style={activeCategory !== 'all' ? 'padding-top: 1rem;' : ''}
+				>
 					{#if activeCategory === 'all'}
 						<h2 class="section__title">{cat.name}</h2>
 					{/if}
@@ -90,7 +99,13 @@
 								price={menu.price}
 								image={menu.image ?? undefined}
 								description={menu.description ?? undefined}
-								onAdd={() => cart.add({ menuId: menu.id, name: menu.name, price: menu.price, image: menu.image })}
+								onAdd={() =>
+									cart.add({
+										menuId: menu.id,
+										name: menu.name,
+										price: menu.price,
+										image: menu.image
+									})}
 							/>
 						{/each}
 					</div>
@@ -100,10 +115,7 @@
 	</div>
 </main>
 
-<MobileNav 
-	activeSessionId={data.activeSession?.id} 
-	tableId={data.table?.id} 
-/>
+<MobileNav activeSessionId={data.activeSession?.id} tableId={data.table?.id} />
 
 <footer class="footer pb-mobile">
 	<div class="footer__container container">
@@ -116,16 +128,16 @@
 	.bill-banner {
 		display: flex;
 		align-items: center;
-		column-gap: .5rem;
+		column-gap: 0.5rem;
 		background-color: var(--container-color);
-		padding: .75rem 1.25rem;
+		padding: 0.75rem 1.25rem;
 		border-radius: 4rem;
 		font-size: var(--small-font-size);
 		color: var(--text-color);
-		box-shadow: 0 4px 12px hsla(353, 100%, 8%, .08);
+		box-shadow: 0 4px 12px hsla(353, 100%, 8%, 0.08);
 		width: fit-content;
 		margin: 0 auto 1rem;
-		transition: background-color .3s;
+		transition: background-color 0.3s;
 	}
 
 	.bill-banner:hover {
@@ -147,7 +159,7 @@
 		position: sticky;
 		top: var(--header-height);
 		z-index: 80; /* Lower than navbar but higher than content */
-		background-color: hsla(24, 86%, 88%, .95); /* Semi-transparent body color */
+		background-color: hsla(24, 86%, 88%, 0.95); /* Semi-transparent body color */
 		backdrop-filter: blur(8px);
 		border-bottom: 1px solid hsla(353, 100%, 8%, 0.05);
 	}
@@ -190,10 +202,13 @@
 		scroll-margin-top: 120px; /* Crucial: handles sticky offset */
 	}
 
-	.no-scrollbar::-webkit-scrollbar { display: none; }
-	.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-	.w-full { width: 100%; }
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+	.no-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
 
 	@media screen and (max-width: 1150px) {
 		.pb-mobile {

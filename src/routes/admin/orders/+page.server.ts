@@ -28,12 +28,15 @@ export const actions: Actions = {
 
 		const data = await request.formData();
 		const id = data.get('id') as string;
-		const paymentMethod = data.get('paymentMethod') as typeof tableSessions.$inferSelect.paymentMethod;
+		const paymentMethod = data.get(
+			'paymentMethod'
+		) as typeof tableSessions.$inferSelect.paymentMethod;
 
 		if (!id || !paymentMethod) return fail(400, { message: 'ID and payment method required' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(tableSessions)
+		await db
+			.update(tableSessions)
 			.set({ paymentStatus: 'paid', paymentMethod, status: 'processing' })
 			.where(eq(tableSessions.id, id));
 		return { success: true };
@@ -48,7 +51,8 @@ export const actions: Actions = {
 		if (!id) return fail(400, { message: 'ID required' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(tableSessions)
+		await db
+			.update(tableSessions)
 			.set({ status: 'closed', closedAt: new Date() })
 			.where(eq(tableSessions.id, id));
 		return { success: true };
@@ -63,7 +67,8 @@ export const actions: Actions = {
 		if (!id) return fail(400, { message: 'ID required' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(tableSessions)
+		await db
+			.update(tableSessions)
 			.set({ status: 'cancelled', closedAt: new Date() })
 			.where(eq(tableSessions.id, id));
 		return { success: true };

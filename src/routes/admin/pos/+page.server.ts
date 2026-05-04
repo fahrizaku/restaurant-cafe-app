@@ -71,10 +71,10 @@ export const actions: Actions = {
 		if (!session) {
 			const [newSession] = await db
 				.insert(tableSessions)
-				.values({ 
-					tableId: tableId || null, 
+				.values({
+					tableId: tableId || null,
 					customerName: customerName || null,
-					totalPrice: 0 
+					totalPrice: 0
 				})
 				.returning();
 			session = newSession;

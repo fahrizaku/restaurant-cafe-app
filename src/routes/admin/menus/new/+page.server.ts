@@ -27,7 +27,15 @@ export const actions: Actions = {
 		if (isNaN(price) || price < 0) return fail(400, { message: 'Valid price is required' });
 
 		const db = getDb(platform.env.DB);
-		await db.insert(menus).values({ id: crypto.randomUUID(), name, categoryId, price, description, image, isAvailable });
+		await db.insert(menus).values({
+			id: crypto.randomUUID(),
+			name,
+			categoryId,
+			price,
+			description,
+			image,
+			isAvailable
+		});
 
 		redirect(303, '/admin/menus');
 	}
