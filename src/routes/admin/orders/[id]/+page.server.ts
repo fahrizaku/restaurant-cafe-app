@@ -28,11 +28,14 @@ export const actions: Actions = {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
 		const data = await request.formData();
-		const paymentMethod = data.get('paymentMethod') as typeof tableSessions.$inferSelect.paymentMethod;
+		const paymentMethod = data.get(
+			'paymentMethod'
+		) as typeof tableSessions.$inferSelect.paymentMethod;
 		if (!paymentMethod) return fail(400, { message: 'Payment method required' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(tableSessions)
+		await db
+			.update(tableSessions)
 			.set({ paymentStatus: 'paid', paymentMethod, status: 'processing' })
 			.where(eq(tableSessions.id, params.id));
 		return { success: true };
@@ -42,7 +45,8 @@ export const actions: Actions = {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(tableSessions)
+		await db
+			.update(tableSessions)
 			.set({ status: 'closed', closedAt: new Date() })
 			.where(eq(tableSessions.id, params.id));
 		return { success: true };
@@ -52,7 +56,8 @@ export const actions: Actions = {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(tableSessions)
+		await db
+			.update(tableSessions)
 			.set({ status: 'cancelled', closedAt: new Date() })
 			.where(eq(tableSessions.id, params.id));
 		return { success: true };
@@ -62,7 +67,8 @@ export const actions: Actions = {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(tableSessions)
+		await db
+			.update(tableSessions)
 			.set({ status: 'open', closedAt: null, paymentStatus: 'unpaid', paymentMethod: null })
 			.where(eq(tableSessions.id, params.id));
 		return { success: true };

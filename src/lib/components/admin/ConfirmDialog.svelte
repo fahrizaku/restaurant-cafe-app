@@ -19,7 +19,11 @@
 </script>
 
 <div class="fixed inset-0 z-[200000] flex items-center justify-center">
-	<div class="absolute inset-0 bg-black/40 backdrop-blur-sm" role="presentation" onclick={onCancel}></div>
+	<div
+		class="absolute inset-0 bg-black/40 backdrop-blur-sm"
+		role="presentation"
+		onclick={onCancel}
+	></div>
 	<div class="relative z-10 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-gray-900">
 		<h2 class="mb-2 text-base font-semibold text-gray-800 dark:text-white">{title}</h2>
 		{#if message}

@@ -5,14 +5,14 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ cookies, platform }) => {
 	const sessionId = cookies.get('session_id');
-	
+
 	if (sessionId && platform?.env.DB) {
 		const db = getDb(platform.env.DB);
 		const activeSession = await db.query.tableSessions.findFirst({
 			where: and(eq(tableSessions.id, sessionId), eq(tableSessions.status, 'open'))
 		});
-		
-		return { 
+
+		return {
 			activeSessionId: activeSession?.id ?? null,
 			tableId: activeSession?.tableId ?? null
 		};

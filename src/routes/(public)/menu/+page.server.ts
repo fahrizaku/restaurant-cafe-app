@@ -37,11 +37,11 @@ export const load: PageServerLoad = async ({ url, platform, cookies }) => {
 
 	const categoriesWithMenus = categories.filter((c) => c.menus.length > 0);
 
-	return { 
-		noTable: !tableId, 
-		table, 
-		categories: categoriesWithMenus, 
-		activeSession: activeSession ?? null 
+	return {
+		noTable: !tableId,
+		table,
+		categories: categoriesWithMenus,
+		activeSession: activeSession ?? null
 	};
 };
 
@@ -91,14 +91,14 @@ export const actions: Actions = {
 
 			const [newSession] = await db
 				.insert(tableSessions)
-				.values({ 
-					tableId: tableId || null, 
+				.values({
+					tableId: tableId || null,
 					customerName: customerName || null,
-					totalPrice: 0 
+					totalPrice: 0
 				})
 				.returning();
 			session = newSession;
-			
+
 			// Jika tidak ada meja, simpan session_id di cookie agar bisa tambah pesanan
 			if (!tableId) {
 				cookies.set('session_id', session.id, { path: '/', maxAge: 60 * 60 * 12 }); // 12 jam

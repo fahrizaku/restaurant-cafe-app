@@ -12,16 +12,26 @@
 
 	const isMenuPage = $derived(page.url.pathname === '/menu');
 	const isCartPage = $derived(page.url.pathname === '/cart');
-	const isStatusPage = $derived(page.url.pathname.startsWith('/order/status') || page.url.pathname.startsWith('/table/'));
+	const isStatusPage = $derived(
+		page.url.pathname.startsWith('/order/status') || page.url.pathname.startsWith('/table/')
+	);
 </script>
 
 <div class="mobile-nav">
-	<a href="/menu{tableId ? '?table=' + tableId : ''}" class="mobile-nav__item" class:active={isMenuPage}>
+	<a
+		href="/menu{tableId ? '?table=' + tableId : ''}"
+		class="mobile-nav__item"
+		class:active={isMenuPage}
+	>
 		<i class="ri-restaurant-line"></i>
 		<span>Menu</span>
 	</a>
 
-	<a href="/cart{tableId ? '?table=' + tableId : ''}" class="mobile-nav__item" class:active={isCartPage}>
+	<a
+		href="/cart{tableId ? '?table=' + tableId : ''}"
+		class="mobile-nav__item"
+		class:active={isCartPage}
+	>
 		<div class="mobile-nav__icon-wrapper">
 			<i class="ri-shopping-cart-2-line"></i>
 			{#if cart.count > 0}
@@ -32,9 +42,9 @@
 	</a>
 
 	{#if activeSessionId || tableId}
-		<a 
-			href={tableId ? `/table/${tableId}` : `/order/status/${activeSessionId}`} 
-			class="mobile-nav__item" 
+		<a
+			href={tableId ? `/table/${tableId}` : `/order/status/${activeSessionId}`}
+			class="mobile-nav__item"
 			class:active={isStatusPage}
 		>
 			<i class="ri-receipt-line"></i>
@@ -60,7 +70,7 @@
 		justify-content: space-around;
 		align-items: center;
 		z-index: 1000; /* Higher than var(--z-fixed) which is 100 */
-		box-shadow: 0 -4px 16px hsla(353, 100%, 8%, .1);
+		box-shadow: 0 -4px 16px hsla(353, 100%, 8%, 0.1);
 		border-top: 1px solid var(--container-color);
 	}
 
@@ -68,13 +78,13 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		row-gap: .25rem;
+		row-gap: 0.25rem;
 		color: var(--text-color-light);
 		background: none;
 		cursor: pointer;
 		flex: 1;
-		padding: .5rem 0;
-		transition: color .3s;
+		padding: 0.5rem 0;
+		transition: color 0.3s;
 	}
 
 	.mobile-nav__item i {
@@ -101,7 +111,7 @@
 		right: -10px;
 		background-color: var(--first-color);
 		color: var(--white-color);
-		font-size: .65rem;
+		font-size: 0.65rem;
 		padding: 1px 5px;
 		border-radius: 1rem;
 		font-weight: var(--font-semi-bold);

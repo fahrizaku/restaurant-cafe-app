@@ -34,7 +34,10 @@ export const actions: Actions = {
 		if (isNaN(price) || price < 0) return fail(400, { message: 'Valid price is required' });
 
 		const db = getDb(platform.env.DB);
-		await db.update(menus).set({ name, categoryId, price, description, image, isAvailable }).where(eq(menus.id, params.id));
+		await db
+			.update(menus)
+			.set({ name, categoryId, price, description, image, isAvailable })
+			.where(eq(menus.id, params.id));
 
 		redirect(303, '/admin/menus');
 	}

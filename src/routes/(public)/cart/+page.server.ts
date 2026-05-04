@@ -80,14 +80,14 @@ export const actions: Actions = {
 
 			const [newSession] = await db
 				.insert(tableSessions)
-				.values({ 
-					tableId: tableId || null, 
+				.values({
+					tableId: tableId || null,
 					customerName: customerName || null,
-					totalPrice: 0 
+					totalPrice: 0
 				})
 				.returning();
 			session = newSession;
-			
+
 			if (!tableId) {
 				cookies.set('session_id', session.id, { path: '/', maxAge: 60 * 60 * 12 });
 			}

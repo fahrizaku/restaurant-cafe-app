@@ -50,11 +50,14 @@ export const tableSessions = sqliteTable('table_sessions', {
 	id: text('id')
 		.primaryKey()
 		.$defaultFn(() => crypto.randomUUID()),
-	tableId: text('table_id')
-		.references(() => tables.id),
+	tableId: text('table_id').references(() => tables.id),
 	customerName: text('customer_name'),
-	status: text('status', { enum: ['open', 'processing', 'closed', 'cancelled'] }).notNull().default('open'),
-	paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] }).notNull().default('unpaid'),
+	status: text('status', { enum: ['open', 'processing', 'closed', 'cancelled'] })
+		.notNull()
+		.default('open'),
+	paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] })
+		.notNull()
+		.default('unpaid'),
 	paymentMethod: text('payment_method', { enum: ['cash', 'qris', 'transfer'] }),
 	totalPrice: real('total_price').notNull().default(0),
 	openedAt: integer('opened_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
