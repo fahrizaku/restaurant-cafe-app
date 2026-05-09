@@ -8,8 +8,29 @@
 	let { data } = $props();
 
 	let activeCategory = $state<string>('all');
+	let categoryDropdownOpen = $state(false);
+
 	$effect(() => {
 		if (activeCategory === '' && data.categories[0]) activeCategory = 'all';
+	});
+
+	function selectCategory(id: string) {
+		activeCategory = id;
+		categoryDropdownOpen = false;
+		window.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	$effect(() => {
+		function handleClickOutside(e: MouseEvent) {
+			const target = e.target as HTMLElement;
+			if (!target.closest('.category-dropdown-wrapper')) {
+				categoryDropdownOpen = false;
+			}
+		}
+		if (categoryDropdownOpen) {
+			document.addEventListener('click', handleClickOutside);
+			return () => document.removeEventListener('click', handleClickOutside);
+		}
 	});
 </script>
 
@@ -49,34 +70,44 @@
 		</div>
 	</section>
 
-	<!-- Category Tabs -->
-	<div class="category-tabs sticky-tabs">
-		<div class="no-scrollbar container flex gap-4 overflow-x-auto py-3">
-			<button
-				onclick={() => (activeCategory = 'all')}
-				class="category-btn {activeCategory === 'all' ? 'active' : ''}"
-			>
-				Semua
-				{#if activeCategory === 'all'}
-					<div class="active-indicator"></div>
-				{/if}
-			</button>
-
-			{#each data.categories as cat}
+	<!-- Category Dropdown -->
+	<div class="sticky-tabs">
+		<div class="container category-dropdown-bar">
+			<div class="category-dropdown-wrapper">
 				<button
-					onclick={() => {
-						activeCategory = cat.id;
-						// Scroll to top of products when category changes
-						window.scrollTo({ top: 0, behavior: 'smooth' });
-					}}
-					class="category-btn {activeCategory === cat.id ? 'active' : ''}"
+					class="category-dropdown-trigger"
+					onclick={() => (categoryDropdownOpen = !categoryDropdownOpen)}
 				>
-					{cat.name}
-					{#if activeCategory === cat.id}
-						<div class="active-indicator"></div>
-					{/if}
+					<i class="ri-menu-2-line"></i>
+					<span>
+						{activeCategory === 'all'
+							? 'Semua'
+							: (data.categories.find((c) => c.id === activeCategory)?.name ?? 'Kategori')}
+					</span>
+					<i class="ri-arrow-down-s-line dropdown-arrow {categoryDropdownOpen ? 'open' : ''}"></i>
 				</button>
-			{/each}
+
+				{#if categoryDropdownOpen}
+					<div class="category-dropdown-list">
+						<button
+							class="category-dropdown-item {activeCategory === 'all' ? 'active' : ''}"
+							onclick={() => selectCategory('all')}
+						>
+							Semua
+							{#if activeCategory === 'all'}<i class="ri-check-line"></i>{/if}
+						</button>
+						{#each data.categories as cat}
+							<button
+								class="category-dropdown-item {activeCategory === cat.id ? 'active' : ''}"
+								onclick={() => selectCategory(cat.id)}
+							>
+								{cat.name}
+								{#if activeCategory === cat.id}<i class="ri-check-line"></i>{/if}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 
@@ -164,33 +195,76 @@
 		border-bottom: 1px solid hsla(353, 100%, 8%, 0.05);
 	}
 
-	.category-btn {
-		position: relative;
-		white-space: nowrap;
-		background: none;
-		padding: 0.5rem 0.25rem;
-		font-size: var(--normal-font-size);
-		font-weight: var(--font-medium);
-		color: var(--text-color-light);
-		transition: color 0.3s;
-		cursor: pointer;
+	.category-dropdown-bar {
 		display: flex;
-		flex-direction: column;
 		align-items: center;
+		padding-block: 0.75rem;
 	}
 
-	.category-btn.active {
+	.category-dropdown-wrapper {
+		position: relative;
+	}
+
+	.category-dropdown-trigger {
+		display: flex;
+		align-items: center;
+		column-gap: 0.5rem;
+		background-color: var(--container-color);
+		color: var(--title-color);
+		font-size: var(--small-font-size);
+		font-weight: var(--font-medium);
+		padding: 0.5rem 1.25rem;
+		border-radius: 4rem;
+		cursor: pointer;
+		transition: all 0.3s;
+	}
+
+	.category-dropdown-trigger:hover {
+		background-color: var(--first-color);
+		color: var(--white-color);
+	}
+
+	.dropdown-arrow {
+		transition: transform 0.3s;
+		font-size: 1.1rem;
+	}
+
+	.dropdown-arrow.open {
+		transform: rotate(180deg);
+	}
+
+	.category-dropdown-list {
+		position: absolute;
+		top: calc(100% + 0.5rem);
+		left: 0;
+		min-width: 180px;
+		background-color: var(--container-color);
+		border-radius: 1rem;
+		box-shadow: 0 8px 24px hsla(353, 100%, 8%, 0.12);
+		overflow: hidden;
+		z-index: 100;
+	}
+
+	.category-dropdown-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		padding: 0.75rem 1.25rem;
+		font-size: var(--small-font-size);
+		color: var(--text-color);
+		cursor: pointer;
+		transition: background-color 0.2s;
+		text-align: left;
+	}
+
+	.category-dropdown-item:hover {
+		background-color: hsla(353, 100%, 8%, 0.05);
+	}
+
+	.category-dropdown-item.active {
 		color: var(--first-color);
 		font-weight: var(--font-semi-bold);
-	}
-
-	.active-indicator {
-		position: absolute;
-		bottom: -2px;
-		width: 20px;
-		height: 3px;
-		background-color: var(--first-color);
-		border-radius: 4rem;
 	}
 
 	.products-wrapper {
@@ -198,16 +272,8 @@
 	}
 
 	.products.section {
-		padding-top: 2rem; /* Adjusted for better spacing */
-		scroll-margin-top: 120px; /* Crucial: handles sticky offset */
-	}
-
-	.no-scrollbar::-webkit-scrollbar {
-		display: none;
-	}
-	.no-scrollbar {
-		-ms-overflow-style: none;
-		scrollbar-width: none;
+		padding-top: 2rem;
+		scroll-margin-top: 120px;
 	}
 
 	@media screen and (max-width: 1150px) {
