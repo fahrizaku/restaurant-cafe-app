@@ -41,6 +41,18 @@ Selesai: manajemen menu/kategori/meja, QR order, admin orders, dashboard, POS ka
 
 Belum: laporan harian/bulanan, print struk, multi-user/role.
 
+## Sebelum Commit
+
+Selalu jalankan type-check sebelum commit:
+
+```bash
+npm run check
+```
+
+Pastikan tidak ada error sebelum melanjutkan commit.
+
+Jangan tambahkan tanda tangan `Co-Authored-By: Claude` pada pesan commit.
+
 ## CSS
 
 Admin pakai `src/lib/styles/admin.css` (Tailwind v4). Tailwind v4 menambah `width: 100%` ke `.container` — gunakan `width: calc(100% - 2rem)` + `margin-inline: auto` untuk menghindari konflik dengan template.css publik.
