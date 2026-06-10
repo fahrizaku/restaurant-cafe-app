@@ -29,6 +29,16 @@ Satu kunjungan meja = satu sesi. Satu klik "Place Order" = satu batch. Semua bat
 
 **Lifecycle:** scan QR → sesi dibuat otomatis → customer order → batch baru → kasir update status → mark paid → close session.
 
+### Realtime (Pusher)
+
+Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke polling 10 detik).
+
+- Server: `src/lib/server/pusher.ts` — REST API langsung (Web Crypto, tanpa SDK Node). `pusherTrigger()` no-op jika env kosong.
+- Client: `src/lib/realtime.ts` (`pusher-js`), config dikirim lewat `load` (`pusherClientConfig()`).
+- Channel: `admin-orders` (semua event, notif + suara di `/admin/orders`), `session-{id}` (status pesanan customer & detail admin), `table-{id}` (bill meja).
+- Event: `new-batch` (order baru dari menu/cart/POS), `session-updated` (aksi kasir: mark paid / complete / cancel / reopen).
+- Env (secret): `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER`. Lokal: `.dev.vars` (lihat `.dev.vars.example`); produksi: `npx wrangler pages secret put`.
+
 ## Halaman
 
 **Publik:** `/` landing · `/menu?table=T-01` order · `/table/T-01` status bill

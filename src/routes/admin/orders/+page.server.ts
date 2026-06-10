@@ -1,11 +1,12 @@
 import { getDb } from '$lib/server/db';
+import { pusherClientConfig, pusherTrigger, sessionChannels } from '$lib/server/pusher';
 import { tableSessions } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ platform, url }) => {
-	if (!platform?.env.DB) return { sessions: [], currentStatus: null };
+	if (!platform?.env.DB) return { sessions: [], currentStatus: null, pusher: null };
 
 	const db = getDb(platform.env.DB);
 	const status = url.searchParams.get('status') as typeof tableSessions.$inferSelect.status | null;
@@ -19,7 +20,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 		}
 	});
 
-	return { sessions, currentStatus: status };
+	return { sessions, currentStatus: status, pusher: pusherClientConfig(platform.env) };
 };
 
 export const actions: Actions = {
@@ -35,10 +36,14 @@ export const actions: Actions = {
 		if (!id || !paymentMethod) return fail(400, { message: 'ID and payment method required' });
 
 		const db = getDb(platform.env.DB);
-		await db
+		const [updated] = await db
 			.update(tableSessions)
 			.set({ paymentStatus: 'paid', paymentMethod, status: 'processing' })
-			.where(eq(tableSessions.id, id));
+			.where(eq(tableSessions.id, id))
+			.returning({ tableId: tableSessions.tableId });
+		await pusherTrigger(platform.env, sessionChannels(id, updated?.tableId), 'session-updated', {
+			sessionId: id
+		});
 		return { success: true };
 	},
 
@@ -51,10 +56,14 @@ export const actions: Actions = {
 		if (!id) return fail(400, { message: 'ID required' });
 
 		const db = getDb(platform.env.DB);
-		await db
+		const [updated] = await db
 			.update(tableSessions)
 			.set({ status: 'closed', closedAt: new Date() })
-			.where(eq(tableSessions.id, id));
+			.where(eq(tableSessions.id, id))
+			.returning({ tableId: tableSessions.tableId });
+		await pusherTrigger(platform.env, sessionChannels(id, updated?.tableId), 'session-updated', {
+			sessionId: id
+		});
 		return { success: true };
 	},
 
@@ -67,10 +76,14 @@ export const actions: Actions = {
 		if (!id) return fail(400, { message: 'ID required' });
 
 		const db = getDb(platform.env.DB);
-		await db
+		const [updated] = await db
 			.update(tableSessions)
 			.set({ status: 'cancelled', closedAt: new Date() })
-			.where(eq(tableSessions.id, id));
+			.where(eq(tableSessions.id, id))
+			.returning({ tableId: tableSessions.tableId });
+		await pusherTrigger(platform.env, sessionChannels(id, updated?.tableId), 'session-updated', {
+			sessionId: id
+		});
 		return { success: true };
 	}
 };

@@ -3,7 +3,7 @@
 	import Sidebar from '$lib/components/admin/Sidebar.svelte';
 	import Header from '$lib/components/admin/Header.svelte';
 
-	let { children } = $props();
+	let { data, children } = $props();
 	let sidebarToggle = $state(false);
 </script>
 
@@ -19,7 +19,11 @@
 	{/if}
 
 	<div class="relative flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
-		<Header {sidebarToggle} onToggleSidebar={() => (sidebarToggle = !sidebarToggle)} />
+		<Header
+			{sidebarToggle}
+			onToggleSidebar={() => (sidebarToggle = !sidebarToggle)}
+			pusher={data.pusher}
+		/>
 
 		<main class="p-4 md:p-6">
 			{@render children()}

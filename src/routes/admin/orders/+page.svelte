@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { formatRupiah } from '$lib/utils';
+	import { subscribeRealtime } from '$lib/realtime';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
 	import {
 		Circle,
@@ -52,6 +54,31 @@
 	function sessionItemCount(session: (typeof data.sessions)[0]) {
 		return session.batches.reduce((s, b) => s + b.items.length, 0);
 	}
+
+	// Bunyi singkat saat ada order baru (best-effort; bisa diblokir autoplay policy)
+	function playNewOrderSound() {
+		try {
+			const ctx = new AudioContext();
+			const osc = ctx.createOscillator();
+			const gain = ctx.createGain();
+			osc.connect(gain);
+			gain.connect(ctx.destination);
+			osc.frequency.value = 880;
+			gain.gain.setValueAtTime(0.2, ctx.currentTime);
+			gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+			osc.start();
+			osc.stop(ctx.currentTime + 0.5);
+		} catch {
+			// abaikan
+		}
+	}
+
+	onMount(() =>
+		subscribeRealtime(data.pusher, 'admin-orders', (event) => {
+			if (event === 'new-batch') playNewOrderSound();
+			invalidateAll();
+		})
+	);
 </script>
 
 <div class="space-y-6">

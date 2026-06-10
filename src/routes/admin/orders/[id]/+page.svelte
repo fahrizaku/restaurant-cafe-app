@@ -1,7 +1,9 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { formatRupiah } from '$lib/utils';
+	import { subscribeRealtime } from '$lib/realtime';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
 	import { Circle, UtensilsCrossed, CheckCircle2, Banknote, QrCode, Landmark } from 'lucide-svelte';
 
@@ -36,6 +38,10 @@
 		if (!date) return '';
 		return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 	}
+
+	onMount(() =>
+		subscribeRealtime(data.pusher, `session-${data.session.id}`, () => invalidateAll())
+	);
 </script>
 
 <div class="space-y-6">

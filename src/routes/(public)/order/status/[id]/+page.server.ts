@@ -1,4 +1,5 @@
 import { getDb } from '$lib/server/db';
+import { pusherClientConfig } from '$lib/server/pusher';
 import { tableSessions } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
@@ -26,5 +27,5 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
 	if (!session) error(404, 'Pesanan tidak ditemukan');
 
-	return { session };
+	return { session, pusher: pusherClientConfig(platform.env) };
 };

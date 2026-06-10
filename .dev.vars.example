@@ -1,0 +1,6 @@
+# Salin ke .dev.vars untuk pengembangan lokal.
+# Untuk produksi: npx wrangler pages secret put <NAMA>
+PUSHER_APP_ID=""
+PUSHER_KEY=""
+PUSHER_SECRET=""
+PUSHER_CLUSTER="ap1"

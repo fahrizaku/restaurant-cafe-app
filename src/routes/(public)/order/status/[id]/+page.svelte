@@ -5,6 +5,7 @@
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import { formatRupiah } from '$lib/utils';
 	import { cart } from '$lib/stores/cart.svelte';
+	import { subscribeRealtime } from '$lib/realtime';
 
 	let { data } = $props();
 	const session = $derived(data.session);
@@ -30,8 +31,11 @@
 		cancelled: 'status--cancelled'
 	};
 
-	// Polling setiap 10 detik
+	// Realtime via Pusher; fallback polling 10 detik jika belum dikonfigurasi
 	onMount(() => {
+		if (data.pusher) {
+			return subscribeRealtime(data.pusher, `session-${data.session.id}`, () => invalidateAll());
+		}
 		const interval = setInterval(() => invalidateAll(), 10000);
 		return () => clearInterval(interval);
 	});
@@ -171,7 +175,10 @@
 					</div>
 				{/if}
 				<p class="bill-refresh-hint">
-					<i class="ri-refresh-line"></i> Diperbarui otomatis setiap 10 detik
+					<i class="ri-refresh-line"></i>
+					{data.pusher
+						? 'Diperbarui otomatis secara realtime'
+						: 'Diperbarui otomatis setiap 10 detik'}
 				</p>
 			</div>
 		</div>

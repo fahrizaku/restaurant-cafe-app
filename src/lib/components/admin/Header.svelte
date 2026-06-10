@@ -1,14 +1,61 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { subscribeRealtime, type RealtimeConfig } from '$lib/realtime';
+
 	let {
 		sidebarToggle = false,
-		onToggleSidebar
+		onToggleSidebar,
+		pusher = null
 	}: {
 		sidebarToggle: boolean;
 		onToggleSidebar: () => void;
+		pusher?: RealtimeConfig | null;
 	} = $props();
+
+	type Notif = { id: string; sessionId: string; time: Date; read: boolean };
 
 	let notifOpen = $state(false);
 	let userOpen = $state(false);
+	let notifications = $state<Notif[]>([]);
+
+	const unreadCount = $derived(notifications.filter((n) => !n.read).length);
+
+	function addNotif(sessionId: string) {
+		notifications.unshift({ id: crypto.randomUUID(), sessionId, time: new Date(), read: false });
+		// Simpan maksimal 20 notif
+		if (notifications.length > 20) notifications = notifications.slice(0, 20);
+	}
+
+	function openNotif() {
+		notifOpen = !notifOpen;
+		userOpen = false;
+		if (notifOpen) {
+			// Tandai semua sudah dibaca
+			notifications = notifications.map((n) => ({ ...n, read: true }));
+		}
+	}
+
+	function goToSession(sessionId: string) {
+		notifOpen = false;
+		goto(`/admin/orders/${sessionId}`);
+	}
+
+	function formatRelativeTime(date: Date): string {
+		const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+		if (diff < 60) return 'Baru saja';
+		if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
+		return `${Math.floor(diff / 3600)} jam lalu`;
+	}
+
+	onMount(() =>
+		subscribeRealtime(pusher, 'admin-orders', (event, data) => {
+			if (event === 'new-batch') {
+				const d = data as { sessionId: string };
+				addNotif(d.sessionId);
+			}
+		})
+	);
 </script>
 
 <header
@@ -36,10 +83,7 @@
 			<!-- Notifications -->
 			<div class="relative">
 				<button
-					onclick={() => {
-						notifOpen = !notifOpen;
-						userOpen = false;
-					}}
+					onclick={openNotif}
 					class="relative flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
 					aria-label="Notifications"
 				>
@@ -51,7 +95,86 @@
 							fill=""
 						/>
 					</svg>
+					{#if unreadCount > 0}
+						<span
+							class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
+						>
+							{unreadCount > 9 ? '9+' : unreadCount}
+						</span>
+					{/if}
 				</button>
+
+				{#if notifOpen}
+					<div
+						class="shadow-theme-lg absolute right-0 mt-2 w-80 rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+					>
+						<div
+							class="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800"
+						>
+							<h3 class="text-sm font-semibold text-gray-800 dark:text-white">Notifikasi</h3>
+							{#if notifications.length > 0}
+								<button
+									onclick={() => (notifications = [])}
+									class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+								>
+									Hapus semua
+								</button>
+							{/if}
+						</div>
+
+						<ul class="max-h-80 overflow-y-auto">
+							{#if notifications.length === 0}
+								<li class="px-4 py-8 text-center text-sm text-gray-400">
+									Belum ada notifikasi
+								</li>
+							{:else}
+								{#each notifications as notif (notif.id)}
+									<li>
+										<button
+											onclick={() => goToSession(notif.sessionId)}
+											class="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/5
+											{!notif.read ? 'bg-blue-50 dark:bg-blue-500/5' : ''}"
+										>
+											<span
+												class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-red-500 dark:bg-red-500/10"
+											>
+												<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+													<path
+														d="M3 3a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 13.846 4.632 16 6.414 16H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z"
+													/>
+												</svg>
+											</span>
+											<div class="flex-1 min-w-0">
+												<p class="text-sm font-medium text-gray-800 dark:text-white">
+													Order baru masuk
+												</p>
+												<p class="truncate text-xs text-gray-500">
+													Sesi #{notif.sessionId.slice(0, 8)}
+												</p>
+												<p class="text-xs text-gray-400 mt-0.5">
+													{formatRelativeTime(notif.time)}
+												</p>
+											</div>
+											{#if !notif.read}
+												<span class="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500"></span>
+											{/if}
+										</button>
+									</li>
+								{/each}
+							{/if}
+						</ul>
+
+						<div class="border-t border-gray-100 px-4 py-2 dark:border-gray-800">
+							<a
+								href="/admin/orders"
+								onclick={() => (notifOpen = false)}
+								class="block text-center text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+							>
+								Lihat semua order →
+							</a>
+						</div>
+					</div>
+				{/if}
 			</div>
 
 			<!-- User Dropdown -->

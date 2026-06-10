@@ -1,4 +1,5 @@
 import { getDb } from '$lib/server/db';
+import { pusherTrigger, sessionChannels } from '$lib/server/pusher';
 import { tableSessions, orderBatches, orderItems } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { error, fail, redirect } from '@sveltejs/kit';
@@ -114,6 +115,14 @@ export const actions: Actions = {
 			.update(tableSessions)
 			.set({ totalPrice: session.totalPrice + batchTotal, paymentStatus: 'unpaid' })
 			.where(eq(tableSessions.id, session.id));
+
+		// Notifikasi realtime ke admin & halaman status
+		await pusherTrigger(
+			platform.env,
+			sessionChannels(session.id, tableId || session.tableId),
+			'new-batch',
+			{ sessionId: session.id }
+		);
 
 		if (tableId) {
 			redirect(303, `/table/${tableId}`);

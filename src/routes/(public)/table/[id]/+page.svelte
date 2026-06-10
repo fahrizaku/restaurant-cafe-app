@@ -3,6 +3,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import { formatRupiah } from '$lib/utils';
+	import { subscribeRealtime } from '$lib/realtime';
 
 	let { data } = $props();
 	const table = $derived(data.table);
@@ -29,8 +30,11 @@
 		cancelled: 'status--cancelled'
 	};
 
-	// Polling setiap 10 detik untuk update status real-time
+	// Realtime via Pusher; fallback polling 10 detik jika belum dikonfigurasi
 	onMount(() => {
+		if (data.pusher) {
+			return subscribeRealtime(data.pusher, `table-${data.table.id}`, () => invalidateAll());
+		}
 		const interval = setInterval(() => invalidateAll(), 10000);
 		return () => clearInterval(interval);
 	});

@@ -10,6 +10,11 @@ declare global {
 			env: {
 				DB: D1Database;
 				BUCKET: R2Bucket;
+				// Pusher (opsional — fitur realtime mati jika tidak diset)
+				PUSHER_APP_ID?: string;
+				PUSHER_KEY?: string;
+				PUSHER_SECRET?: string;
+				PUSHER_CLUSTER?: string;
 			};
 			context: {
 				waitUntil(promise: Promise<any>): void;
