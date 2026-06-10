@@ -10,6 +10,41 @@
 	}
 
 	let { name, price, image, description, onAdd }: Props = $props();
+
+	let particles = $state<{ id: number; x: number; y: number }[]>([]);
+	let flyingIcons = $state<
+		{ id: number; startX: number; startY: number; destX: number; destY: number }[]
+	>([]);
+
+	function handleAdd(e: MouseEvent) {
+		const id = Date.now();
+		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+
+		// Partikel "+1" relatif terhadap tombol
+		particles.push({ id, x: e.clientX - rect.left, y: e.clientY - rect.top });
+
+		// Icon terbang menuju icon keranjang di mobile nav (jika terlihat)
+		const cartIcon = document.querySelector('.mobile-nav .ri-shopping-cart-2-line');
+		if (cartIcon) {
+			const cartRect = cartIcon.getBoundingClientRect();
+			if (cartRect.width > 0) {
+				flyingIcons.push({
+					id,
+					startX: e.clientX,
+					startY: e.clientY,
+					destX: cartRect.left + cartRect.width / 2,
+					destY: cartRect.top + cartRect.height / 2
+				});
+			}
+		}
+
+		setTimeout(() => {
+			particles = particles.filter((p) => p.id !== id);
+			flyingIcons = flyingIcons.filter((f) => f.id !== id);
+		}, 1200);
+
+		onAdd?.();
+	}
 </script>
 
 <article class="products__card">
@@ -24,12 +59,23 @@
 		</div>
 		<div class="products__footer">
 			<span class="products__price">{formatRupiah(price)}</span>
-			<button class="products__button" aria-label="Add {name} to cart" onclick={() => onAdd?.()}>
+			<button class="products__button" aria-label="Add {name} to cart" onclick={handleAdd}>
 				<i class="ri-add-line"></i>
+				{#each particles as particle (particle.id)}
+					<span class="plus-one" style="left: {particle.x}px; top: {particle.y}px;">+1</span>
+				{/each}
 			</button>
 		</div>
 	</div>
 </article>
+
+{#each flyingIcons as icon (icon.id)}
+	<div class="fly-outer" style="--start-x: {icon.startX}px; --dest-x: {icon.destX}px;">
+		<div class="fly-inner" style="--start-y: {icon.startY}px; --dest-y: {icon.destY}px;">
+			<i class="ri-shopping-cart-fill"></i>
+		</div>
+	</div>
+{/each}
 
 <style>
 	.products__card {
@@ -100,6 +146,8 @@
 		white-space: nowrap;
 	}
 
+	/* template.css sudah memberi position: absolute (pojok kanan bawah kartu);
+	   itu sekaligus jadi anchor untuk partikel .plus-one */
 	.products__button {
 		background-color: var(--first-color);
 		color: var(--white-color);
@@ -128,6 +176,88 @@
 
 	.products__card:hover .products__img {
 		transform: scale(1.05);
+	}
+
+	/* Partikel "+1" melayang ke atas dari titik klik */
+	.plus-one {
+		position: absolute;
+		color: #f59e0b;
+		font-weight: var(--font-semi-bold);
+		font-size: var(--small-font-size);
+		pointer-events: none;
+		animation: floatUp 1s ease-out forwards;
+		z-index: 100;
+		text-shadow: 0 0 4px rgba(255, 255, 255, 1);
+	}
+
+	@keyframes floatUp {
+		0% {
+			transform: translate(-50%, -50%) scale(1);
+			opacity: 1;
+		}
+		40% {
+			opacity: 1;
+		}
+		100% {
+			transform: translate(-50%, -100px) scale(1.5);
+			opacity: 0;
+		}
+	}
+
+	/* Icon keranjang terbang: sumbu X linear, sumbu Y parabola */
+	.fly-outer {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: 9999;
+		pointer-events: none;
+		animation: flyX 1.2s linear forwards;
+	}
+
+	.fly-inner {
+		width: 25px;
+		height: 25px;
+		background-color: var(--first-color);
+		color: var(--white-color);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.8rem;
+		box-shadow: 0 4px 10px hsla(353, 93%, 50%, 0.4);
+		animation: flyY 1.2s cubic-bezier(0.3, 0, 0.7, 1) forwards;
+		border: 1px solid rgba(255, 255, 255, 0.5);
+	}
+
+	@keyframes flyX {
+		0% {
+			transform: translateX(var(--start-x));
+		}
+		100% {
+			transform: translateX(var(--dest-x));
+		}
+	}
+
+	@keyframes flyY {
+		0% {
+			transform: translateY(var(--start-y)) translate(-50%, -50%) scale(1);
+			opacity: 1;
+		}
+		/* Puncak lemparan: melambat sejenak di udara */
+		45% {
+			transform: translateY(calc(var(--start-y) - 120px)) translate(-50%, -50%) scale(1.3);
+			opacity: 1;
+		}
+		/* Hampir sampai: masih terlihat utuh dan presisi di tengah */
+		90% {
+			transform: translateY(calc(var(--dest-y) - 10px)) translate(-50%, -50%) scale(1);
+			opacity: 1;
+		}
+		/* Kontak: masuk ke keranjang */
+		100% {
+			transform: translateY(var(--dest-y)) translate(-50%, -50%) scale(0.2);
+			opacity: 0;
+		}
 	}
 
 	@media screen and (min-width: 1150px) {

@@ -8,30 +8,43 @@
 	let { data } = $props();
 
 	let activeCategory = $state<string>('all');
-	let categoryDropdownOpen = $state(false);
+	let inputValue = $state('');
+	let searchInput = $state<HTMLInputElement | null>(null);
 
-	$effect(() => {
-		if (activeCategory === '' && data.categories[0]) activeCategory = 'all';
-	});
+	const searchQuery = $derived(inputValue.trim().toLowerCase());
+
+	const visibleCategories = $derived(
+		data.categories
+			.map((cat) => ({
+				...cat,
+				menus: searchQuery
+					? cat.menus.filter(
+							(m) =>
+								m.name.toLowerCase().includes(searchQuery) ||
+								(m.description ?? '').toLowerCase().includes(searchQuery)
+						)
+					: cat.menus
+			}))
+			.filter(
+				(cat) =>
+					cat.menus.length > 0 &&
+					(searchQuery || activeCategory === 'all' || cat.id === activeCategory)
+			)
+	);
+
+	const totalResults = $derived(visibleCategories.reduce((sum, c) => sum + c.menus.length, 0));
 
 	function selectCategory(id: string) {
 		activeCategory = id;
-		categoryDropdownOpen = false;
+		inputValue = '';
 		window.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
-	$effect(() => {
-		function handleClickOutside(e: MouseEvent) {
-			const target = e.target as HTMLElement;
-			if (!target.closest('.category-dropdown-wrapper')) {
-				categoryDropdownOpen = false;
-			}
-		}
-		if (categoryDropdownOpen) {
-			document.addEventListener('click', handleClickOutside);
-			return () => document.removeEventListener('click', handleClickOutside);
-		}
-	});
+	function handleSearchSubmit(e: Event) {
+		e.preventDefault();
+		// Pencarian sudah live; submit hanya untuk menutup keyboard di mobile
+		searchInput?.blur();
+	}
 </script>
 
 <svelte:head>
@@ -44,16 +57,13 @@
 	<!--==================== MENU TITLE ====================-->
 	<section class="section" id="menu-top" style="padding-bottom: 0;">
 		<div class="container">
-			<h1 class="section__title">Menu Kami</h1>
-			<p style="text-align: center; margin-bottom: 1rem;">
-				{#if data.table}
-					Meja: {data.table.name}
-				{:else if data.activeSession?.customerName}
+			{#if data.table}
+				<p style="text-align: center; margin-bottom: 1rem;">Meja: {data.table.name}</p>
+			{:else if data.activeSession?.customerName}
+				<p style="text-align: center; margin-bottom: 1rem;">
 					Pesanan: {data.activeSession.customerName}
-				{:else}
-					Selamat Datang!
-				{/if}
-			</p>
+				</p>
+			{/if}
 
 			{#if data.activeSession}
 				<a
@@ -70,61 +80,72 @@
 		</div>
 	</section>
 
-	<!-- Category Dropdown -->
-	<div class="sticky-tabs">
-		<div class="container category-dropdown-bar">
-			<div class="category-dropdown-wrapper">
-				<button
-					class="category-dropdown-trigger"
-					onclick={() => (categoryDropdownOpen = !categoryDropdownOpen)}
-				>
-					<i class="ri-menu-2-line"></i>
-					<span>
-						{activeCategory === 'all'
-							? 'Semua'
-							: (data.categories.find((c) => c.id === activeCategory)?.name ?? 'Kategori')}
-					</span>
-					<i class="ri-arrow-down-s-line dropdown-arrow {categoryDropdownOpen ? 'open' : ''}"></i>
-				</button>
-
-				{#if categoryDropdownOpen}
-					<div class="category-dropdown-list">
-						<button
-							class="category-dropdown-item {activeCategory === 'all' ? 'active' : ''}"
-							onclick={() => selectCategory('all')}
-						>
-							Semua
-							{#if activeCategory === 'all'}<i class="ri-check-line"></i>{/if}
-						</button>
-						{#each data.categories as cat}
-							<button
-								class="category-dropdown-item {activeCategory === cat.id ? 'active' : ''}"
-								onclick={() => selectCategory(cat.id)}
-							>
-								{cat.name}
-								{#if activeCategory === cat.id}<i class="ri-check-line"></i>{/if}
-							</button>
-						{/each}
-					</div>
-				{/if}
+	<!-- Search (sticky) -->
+	<div class="search-sticky-wrapper">
+		<form class="search-box container" onsubmit={handleSearchSubmit}>
+			<div class="search-icon-wrapper">
+				<i class="ri-search-line"></i>
 			</div>
+			<input
+				bind:this={searchInput}
+				type="search"
+				inputmode="search"
+				enterkeyhint="search"
+				placeholder="Cari menu..."
+				class="search-input"
+				bind:value={inputValue}
+			/>
+			<button type="submit" class="search-submit-btn">Cari</button>
+		</form>
+	</div>
+
+	<!-- Category Filter -->
+	<div class="search-filter container">
+		<div class="filter-buttons">
+			<button
+				class="filter-btn {!searchQuery && activeCategory === 'all' ? 'active' : ''}"
+				onclick={() => selectCategory('all')}
+			>
+				<i class="ri-apps-line"></i>
+				<span>Semua</span>
+			</button>
+			{#each data.categories as category}
+				<button
+					class="filter-btn {!searchQuery && activeCategory === category.id ? 'active' : ''}"
+					onclick={() => selectCategory(category.id)}
+				>
+					<i class="ri-price-tag-3-line"></i>
+					<span>{category.name}</span>
+				</button>
+			{/each}
 		</div>
 	</div>
 
 	<!--==================== PRODUCTS ====================-->
-	<div class="products-wrapper">
-		{#each data.categories as cat}
-			{#if activeCategory === 'all' || activeCategory === cat.id}
+	{#if searchQuery && totalResults === 0}
+		<div class="empty-state container">
+			<i class="ri-search-eye-line empty-icon"></i>
+			<p>"{inputValue.trim()}" tidak ditemukan</p>
+			<span class="empty-description">Coba kata kunci lain atau pilih kategori di atas.</span>
+		</div>
+	{:else}
+		{#if searchQuery}
+			<div class="search-results-info container">
+				<p>Menemukan <strong>{totalResults}</strong> menu untuk "<strong>{inputValue.trim()}</strong>"</p>
+			</div>
+		{/if}
+		<div class="products-wrapper">
+			{#each visibleCategories as cat (cat.id)}
 				<section
 					class="products section"
 					id="cat-{cat.id}"
-					style={activeCategory !== 'all' ? 'padding-top: 1rem;' : ''}
+					style={!searchQuery && activeCategory !== 'all' ? 'padding-top: 1rem;' : ''}
 				>
-					{#if activeCategory === 'all'}
+					{#if searchQuery || activeCategory === 'all'}
 						<h2 class="section__title">{cat.name}</h2>
 					{/if}
 					<div class="products__container container grid">
-						{#each cat.menus as menu}
+						{#each cat.menus as menu (menu.id)}
 							<ProductCard
 								name={menu.name}
 								price={menu.price}
@@ -141,9 +162,9 @@
 						{/each}
 					</div>
 				</section>
-			{/if}
-		{/each}
-	</div>
+			{/each}
+		</div>
+	{/if}
 </main>
 
 <MobileNav activeSessionId={data.activeSession?.id} tableId={data.table?.id} />
@@ -185,90 +206,181 @@
 		color: var(--white-color);
 	}
 
-	/* Sticky tabs */
-	.sticky-tabs {
+	/* Search (sticky) */
+	.search-sticky-wrapper {
 		position: sticky;
 		top: var(--header-height);
 		z-index: 80; /* Lower than navbar but higher than content */
 		background-color: hsla(24, 86%, 88%, 0.95); /* Semi-transparent body color */
 		backdrop-filter: blur(8px);
-		border-bottom: 1px solid hsla(353, 100%, 8%, 0.05);
-	}
-
-	.category-dropdown-bar {
-		display: flex;
-		align-items: center;
 		padding-block: 0.75rem;
+		margin-bottom: 0.75rem;
 	}
 
-	.category-dropdown-wrapper {
-		position: relative;
-	}
-
-	.category-dropdown-trigger {
+	.search-box {
 		display: flex;
 		align-items: center;
-		column-gap: 0.5rem;
 		background-color: var(--container-color);
-		color: var(--title-color);
-		font-size: var(--small-font-size);
-		font-weight: var(--font-medium);
-		padding: 0.5rem 1.25rem;
 		border-radius: 4rem;
-		cursor: pointer;
-		transition: all 0.3s;
+		box-shadow: 0 4px 12px hsla(353, 100%, 8%, 0.08);
+		overflow: hidden;
+		border: 2px solid transparent;
+		transition: border-color 0.4s, box-shadow 0.4s;
 	}
 
-	.category-dropdown-trigger:hover {
+	.search-box:focus-within {
+		border-color: var(--first-color);
+		box-shadow: 0 4px 12px hsla(353, 93%, 50%, 0.2);
+	}
+
+	.search-icon-wrapper {
+		padding-left: 1rem;
+		font-size: 1.25rem;
+		color: var(--text-color-light);
+		display: flex;
+		align-items: center;
+		pointer-events: none;
+	}
+
+	.search-input {
+		flex: 1;
+		min-width: 0;
+		padding: 0.75rem 1rem 0.75rem 0.75rem;
+		background: none;
+		border: none;
+		color: var(--title-color);
+		font-size: var(--normal-font-size);
+		outline: none;
+	}
+
+	.search-input::placeholder {
+		color: var(--text-color-light);
+	}
+
+	.search-submit-btn {
 		background-color: var(--first-color);
 		color: var(--white-color);
-	}
-
-	.dropdown-arrow {
-		transition: transform 0.3s;
-		font-size: 1.1rem;
-	}
-
-	.dropdown-arrow.open {
-		transform: rotate(180deg);
-	}
-
-	.category-dropdown-list {
-		position: absolute;
-		top: calc(100% + 0.5rem);
-		left: 0;
-		min-width: 180px;
-		background-color: var(--container-color);
-		border-radius: 1rem;
-		box-shadow: 0 8px 24px hsla(353, 100%, 8%, 0.12);
-		overflow: hidden;
-		z-index: 100;
-	}
-
-	.category-dropdown-item {
+		border: none;
+		padding: 0.75rem 1.5rem;
+		font-weight: var(--font-semi-bold);
+		cursor: pointer;
+		transition: background-color 0.3s, transform 0.3s;
+		font-size: var(--small-font-size);
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-		width: 100%;
-		padding: 0.75rem 1.25rem;
+		justify-content: center;
+		min-width: max-content;
+	}
+
+	.search-submit-btn:active {
+		transform: scale(0.95);
+		background-color: var(--first-color-alt);
+	}
+
+	/* Sembunyikan tombol Cari di layar sempit agar input lebih lega */
+	@media screen and (max-width: 400px) {
+		.search-submit-btn {
+			display: none;
+		}
+		.search-input {
+			padding-right: 1.25rem;
+		}
+	}
+
+	/* Category Filter */
+	.search-filter {
+		margin-bottom: 0.5rem;
+	}
+
+	.filter-buttons {
+		display: flex;
+		gap: 0.75rem;
+		overflow-x: auto;
+		padding-bottom: 0.5rem;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.filter-buttons::-webkit-scrollbar {
+		height: 4px;
+	}
+
+	.filter-buttons::-webkit-scrollbar-thumb {
+		background-color: var(--first-color);
+		border-radius: 4px;
+	}
+
+	.filter-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 1.25rem;
+		background-color: var(--container-color);
+		border: 2px solid transparent;
+		border-radius: 4rem;
+		color: var(--text-color);
+		font-size: var(--small-font-size);
+		font-weight: var(--font-medium);
+		white-space: nowrap;
+		cursor: pointer;
+		transition: all 0.3s;
+		box-shadow: 0 4px 12px hsla(353, 100%, 8%, 0.08);
+	}
+
+	.filter-btn i {
+		font-size: 1.125rem;
+	}
+
+	.filter-btn:hover {
+		border-color: var(--first-color);
+	}
+
+	.filter-btn.active {
+		background-color: var(--first-color);
+		color: var(--white-color);
+		border-color: var(--first-color);
+	}
+
+	/* Search Results Info */
+	.search-results-info {
+		margin-top: 1rem;
+		padding: 0.75rem;
+		background-color: var(--container-color);
+		border-radius: 0.75rem;
+		text-align: center;
+		font-size: var(--small-font-size);
+	}
+
+	/* Empty State */
+	.empty-state {
+		text-align: center;
+		padding: 3rem 2rem;
+		margin-top: 1.5rem;
+		background-color: var(--container-color);
+		border-radius: 1.5rem;
+		box-shadow: 0 4px 12px hsla(353, 100%, 8%, 0.08);
+	}
+
+	.empty-icon {
+		font-size: 3rem;
+		color: var(--first-color);
+		display: block;
+		margin-bottom: 1rem;
+	}
+
+	.empty-state p {
+		font-size: var(--h3-font-size);
+		color: var(--title-color);
+		font-weight: var(--font-semi-bold);
+		margin-bottom: 0.5rem;
+	}
+
+	.empty-description {
 		font-size: var(--small-font-size);
 		color: var(--text-color);
-		cursor: pointer;
-		transition: background-color 0.2s;
-		text-align: left;
-	}
-
-	.category-dropdown-item:hover {
-		background-color: hsla(353, 100%, 8%, 0.05);
-	}
-
-	.category-dropdown-item.active {
-		color: var(--first-color);
-		font-weight: var(--font-semi-bold);
 	}
 
 	.products-wrapper {
-		padding-top: 1rem;
+		padding-top: 0;
 	}
 
 	.products.section {
