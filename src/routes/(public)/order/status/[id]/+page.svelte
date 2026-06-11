@@ -33,13 +33,16 @@
 	};
 
 	let showConfirmToast = $state(false);
+	let toastMinutes = $state<number | null>(null);
 	let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
 	// Realtime via Pusher; fallback polling 10 detik jika belum dikonfigurasi
 	onMount(() => {
 		if (data.pusher) {
-			return subscribeRealtime(data.pusher, `session-${data.session.id}`, (event) => {
+			return subscribeRealtime(data.pusher, `session-${data.session.id}`, (event, evData) => {
 				if (event === 'order-confirmed') {
+					const payload = evData as { estimatedMinutes?: number | null };
+					toastMinutes = payload?.estimatedMinutes ?? null;
 					showConfirmToast = true;
 					if (toastTimer) clearTimeout(toastTimer);
 					toastTimer = setTimeout(() => {
@@ -73,7 +76,7 @@
 {#if showConfirmToast}
 	<div class="order-toast" role="status" aria-live="polite">
 		<i class="ri-restaurant-2-line"></i>
-		<span>Pesanan diterima! Dapur sedang menyiapkan.</span>
+		<span>Pesanan diterima! {toastMinutes ? `Siap dalam ±${toastMinutes} menit.` : 'Dapur sedang menyiapkan.'}</span>
 	</div>
 {/if}
 

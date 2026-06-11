@@ -180,9 +180,18 @@
 						<div class="flex items-center gap-2">
 							{#if session.status === 'open' || session.status === 'processing'}
 								{#if batch.status === 'pending'}
-									<form method="POST" action="?/updateBatchStatus" use:enhance={() => () => invalidateAll()}>
+									<form method="POST" action="?/updateBatchStatus" use:enhance={() => () => invalidateAll()} class="flex items-center gap-1">
 										<input type="hidden" name="batchId" value={batch.id} />
 										<input type="hidden" name="status" value="processing" />
+										<input
+											type="number"
+											name="estimatedMinutes"
+											min="1"
+											max="999"
+											placeholder="mnt"
+											title="Estimasi selesai (menit, opsional)"
+											class="w-14 rounded-lg border border-gray-200 bg-white px-2 py-1 text-center text-xs dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+										/>
 										<button
 											type="submit"
 											class="bg-brand-500 hover:bg-brand-600 rounded-lg px-2.5 py-1 text-xs font-medium text-white"

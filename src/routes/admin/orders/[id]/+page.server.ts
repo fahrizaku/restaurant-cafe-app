@@ -247,9 +247,14 @@ export const actions: Actions = {
 
 		// Notifikasi khusus ke customer saat batch mulai diproses
 		if (status === 'processing') {
+			const estRaw = data.get('estimatedMinutes') as string | null;
+			const estParsed = estRaw ? parseInt(estRaw, 10) : NaN;
+			const estimatedMinutes =
+				Number.isFinite(estParsed) && estParsed > 0 && estParsed <= 999 ? estParsed : null;
 			await pusherTrigger(platform.env, channels, 'order-confirmed', {
 				sessionId: params.id,
-				batchId
+				batchId,
+				estimatedMinutes
 			});
 		}
 
