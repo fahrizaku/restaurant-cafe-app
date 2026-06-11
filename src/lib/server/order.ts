@@ -126,7 +126,9 @@ export async function processOrder(
 			.update(tableSessions)
 			.set({
 				totalPrice: sql`${tableSessions.totalPrice} + ${batchTotal}`,
-				paymentStatus: 'unpaid'
+				// Total berubah — klaim transfer sebelumnya tidak berlaku lagi
+				paymentStatus: 'unpaid',
+				paymentProof: null
 			})
 			.where(eq(tableSessions.id, session.id))
 	]);

@@ -15,6 +15,13 @@
       "when": 1781140773586,
       "tag": "0001_open_session_per_table",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1781145314388,
+      "tag": "0002_settings_payment_proof",
+      "breakpoints": true
     }
   ]
 }

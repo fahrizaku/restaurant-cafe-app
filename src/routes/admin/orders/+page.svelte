@@ -86,7 +86,7 @@
 
 	onMount(() =>
 		subscribeRealtime(data.pusher, 'admin-orders', (event) => {
-			if (event === 'new-batch') playNewOrderSound();
+			if (event === 'new-batch' || event === 'payment-requested') playNewOrderSound();
 			invalidateAll();
 		})
 	);
@@ -210,6 +210,13 @@
 										>
 											<CheckCircle2 size={12} />
 											Lunas · {paymentMethodLabel[session.paymentMethod ?? ''] ?? '-'}
+										</span>
+									{:else if session.paymentStatus === 'pending'}
+										<span
+											class="bg-warning-50 text-warning-600 dark:bg-warning-500/10 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
+										>
+											<AlertCircle size={12} />
+											Konfirmasi Transfer
 										</span>
 									{:else}
 										<span

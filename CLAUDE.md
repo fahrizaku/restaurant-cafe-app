@@ -33,6 +33,10 @@ Semua jalur order (menu publik, cart, POS kasir) lewat `processOrder()` di `src/
 
 Konteks meja customer diingat di cookie `table_id` (6 jam) via `src/lib/server/table-context.ts` — URL `?table=` menang atas cookie; di-set oleh load `/menu`, `/cart`, `/table/[id]`. Tanpa ini, tab "Tagihan" hilang saat berpindah halaman tanpa query param.
 
+### Pembayaran Customer
+
+Customer bisa memilih cara bayar di halaman tagihan (`/table/[id]` & `/order/status/[id]`): **bayar ke kasir** (instruksi statis) atau **transfer di meja**. `paymentStatus`: `unpaid` → `pending` (customer upload bukti transfer, klaim sudah bayar) → `paid` (kasir verifikasi manual). Logika di `src/lib/server/payment.ts` (`requestTransfer()`): validasi file (jpeg/png/webp, maks 5 MB), simpan ke R2 `payment-proofs/{sessionId}/{ts}`, kolom `payment_proof` di sesi. Bukti disajikan ke kasir via `GET /admin/payment-proof/[...key]` (stream dari R2, di balik Basic Auth). Kasir konfirmasi (markPaid transfer) atau tolak (`rejectTransfer` → `unpaid`, hapus bukti). Order baru saat `pending` → reset ke `unpaid` + hapus klaim. Info rekening dari tabel `settings` (`bank_name`, `bank_account`, `bank_holder`) via `getBankInfo()` di `src/lib/server/settings.ts`; jika kosong, opsi transfer disembunyikan. Nilai enum `pending` hanya level TypeScript (kolom text tanpa CHECK).
+
 ### Realtime (Pusher)
 
 Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke polling 10 detik).
@@ -40,14 +44,14 @@ Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke
 - Server: `src/lib/server/pusher.ts` — REST API langsung (Web Crypto, tanpa SDK Node). `pusherTrigger()` no-op jika env kosong.
 - Client: `src/lib/realtime.ts` (`pusher-js`), config dikirim lewat `load` (`pusherClientConfig()`).
 - Channel: `admin-orders` (semua event, notif + suara di `/admin/orders`), `session-{id}` (status pesanan customer & detail admin), `table-{id}` (bill meja).
-- Event: `new-batch` (order baru dari menu/cart/POS), `session-updated` (aksi kasir: mark paid / complete / cancel / reopen).
+- Event: `new-batch` (order baru dari menu/cart/POS), `session-updated` (aksi kasir: mark paid / complete / cancel / reopen / batch status / tolak transfer), `payment-requested` (customer klaim sudah transfer — bunyi di `/admin/orders`).
 - Env (secret): `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER`. Lokal: `.dev.vars` (lihat `.dev.vars.example`); produksi: `npx wrangler pages secret put`.
 
 ## Halaman
 
 **Publik:** `/` landing · `/menu?table=T-01` order · `/table/T-01` status bill
 
-**Admin:** `/admin` dashboard · `/admin/orders` daftar sesi · `/admin/orders/[id]` detail · `/admin/menus` · `/admin/categories` · `/admin/tables` · `/admin/pos` POS kasir
+**Admin:** `/admin` dashboard · `/admin/orders` daftar sesi · `/admin/orders/[id]` detail · `/admin/menus` · `/admin/categories` · `/admin/tables` · `/admin/pos` POS kasir · `/admin/settings` pengaturan (rekening transfer)
 
 ## Status Fitur
 

@@ -1,6 +1,12 @@
 import { integer, sqliteTable, text, real, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 
+// Key-value settings aplikasi (info rekening, dsb.)
+export const settings = sqliteTable('settings', {
+	key: text('key').primaryKey(),
+	value: text('value').notNull()
+});
+
 export const categories = sqliteTable('categories', {
 	id: text('id')
 		.primaryKey()
@@ -57,10 +63,13 @@ export const tableSessions = sqliteTable(
 		status: text('status', { enum: ['open', 'processing', 'closed', 'cancelled'] })
 			.notNull()
 			.default('open'),
-		paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] })
+		// 'pending' = customer klaim sudah transfer, menunggu verifikasi kasir
+		paymentStatus: text('payment_status', { enum: ['unpaid', 'pending', 'paid'] })
 			.notNull()
 			.default('unpaid'),
 		paymentMethod: text('payment_method', { enum: ['cash', 'qris', 'transfer'] }),
+		// Key objek R2 bukti transfer (payment-proofs/...)
+		paymentProof: text('payment_proof'),
 		totalPrice: real('total_price').notNull().default(0),
 		openedAt: integer('opened_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 		closedAt: integer('closed_at', { mode: 'timestamp' })

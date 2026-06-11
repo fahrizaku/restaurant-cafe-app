@@ -77,3 +77,43 @@
 
 - Channel Pusher masih publik; pertimbangkan private channel jika payload event diperkaya di masa depan.
 - Semua item (review pertama & kedua) selesai dikerjakan.
+
+---
+
+# Fitur: Pilihan Pembayaran Customer (Transfer di Meja / Bayar ke Kasir)
+
+Keputusan desain: info rekening di halaman settings admin · verifikasi transfer manual oleh kasir · upload bukti transfer ke R2 · "bayar ke kasir" cukup instruksi statis.
+
+## Fondasi
+
+- [x] **Migration `0002`** — tabel `settings` (key-value: `key` text PK, `value` text) + kolom `payment_proof` (text, nullable) di `table_sessions`.
+  - File: `src/lib/server/db/schema.ts`, `drizzle/0002_*.sql`
+  - `paymentStatus` tambah nilai `'pending'` (TS-only, tanpa migration — tidak ada CHECK constraint).
+
+- [x] **Halaman `/admin/settings`** — form info pembayaran: nama bank, nomor rekening, atas nama. Disimpan ke tabel `settings`. Tambah link di sidebar admin.
+  - File: `src/routes/admin/settings/+page.server.ts`, `+page.svelte`
+
+## Alur Customer
+
+- [x] **Bagian "Bayar Sekarang" di halaman tagihan** (`/table/[id]` dan `/order/status/[id]`) saat `paymentStatus = 'unpaid'` dan ada batch:
+  - Tombol **Bayar ke Kasir** → instruksi statis ("tunjukkan halaman ini ke kasir").
+  - Tombol **Transfer** → tampilkan rekening (dari settings) + total + upload bukti transfer (wajib) + tombol "Saya Sudah Transfer".
+  - Jika rekening belum diisi di settings, opsi transfer disembunyikan.
+
+- [x] **Action `requestTransfer`** — validasi file (jpeg/png/webp, maks 5 MB), simpan ke R2 (`payment-proofs/{sessionId}-{ts}`), set `paymentStatus = 'pending'`, `paymentMethod = 'transfer'`, `paymentProof = key`, trigger Pusher `payment-requested` ke `admin-orders` + channel sesi.
+
+- [x] **Status "Menunggu konfirmasi kasir"** di halaman tagihan customer saat `pending` (realtime via channel yang sudah ada).
+
+## Alur Admin
+
+- [x] **Endpoint bukti transfer** — `GET /admin/payment-proof/[...key]` stream dari R2 (terlindungi Basic Auth admin yang sudah ada).
+
+- [x] **Badge & konfirmasi di admin** — badge "Menunggu Konfirmasi" (kuning) di daftar & detail sesi; di detail: preview bukti transfer + tombol **Konfirmasi Transfer** (→ paid, alur lama lanjut) dan **Tolak** (→ kembali `unpaid`, hapus proof).
+
+- [x] **Notifikasi suara** — event `payment-requested` bunyi di `/admin/orders` (seperti `new-batch`).
+
+## Konsistensi
+
+- [x] **Order baru saat `pending`** — `processOrder` reset ke `unpaid` (perilaku sekarang) + kosongkan `paymentProof`; customer harus minta bayar ulang karena total berubah.
+- [x] **`markPaid` manual oleh kasir tetap bisa** kapan pun (termasuk saat `pending`, misal customer akhirnya bayar tunai).
+- [x] **CLAUDE.md** — perbarui lifecycle, daftar halaman (`/admin/settings`), dan event Pusher baru.

@@ -2,9 +2,11 @@ import { getDb } from '$lib/server/db';
 import { pusherClientConfig } from '$lib/server/pusher';
 import { tableSessions } from '$lib/server/db/schema';
 import { eq, and, or, desc } from 'drizzle-orm';
-import { error } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { rememberTable } from '$lib/server/table-context';
-import type { PageServerLoad } from './$types';
+import { getBankInfo } from '$lib/server/settings';
+import { requestTransfer } from '$lib/server/payment';
+import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ params, platform, cookies }) => {
 	if (!platform?.env.DB) error(500, 'Service unavailable');
@@ -21,22 +23,44 @@ export const load: PageServerLoad = async ({ params, platform, cookies }) => {
 	rememberTable(cookies, table.id);
 
 	// Ambil sesi aktif beserta semua batch dan item-nya
-	const session = await db.query.tableSessions.findFirst({
-		where: and(
-			eq(tableSessions.tableId, params.id),
-			or(eq(tableSessions.status, 'open'), eq(tableSessions.status, 'processing'))
-		),
-		with: {
-			batches: {
-				orderBy: (b, { desc }) => [desc(b.createdAt)],
-				with: {
-					items: {
-						with: { menu: true }
+	const [session, bank] = await Promise.all([
+		db.query.tableSessions.findFirst({
+			where: and(
+				eq(tableSessions.tableId, params.id),
+				or(eq(tableSessions.status, 'open'), eq(tableSessions.status, 'processing'))
+			),
+			with: {
+				batches: {
+					orderBy: (b, { desc }) => [desc(b.createdAt)],
+					with: {
+						items: {
+							with: { menu: true }
+						}
 					}
 				}
 			}
-		}
-	});
+		}),
+		getBankInfo(db)
+	]);
 
-	return { table, session: session ?? null, pusher: pusherClientConfig(platform.env) };
+	return { table, session: session ?? null, bank, pusher: pusherClientConfig(platform.env) };
+};
+
+export const actions: Actions = {
+	requestTransfer: async ({ request, params, platform }) => {
+		if (!platform?.env.DB) return fail(500, { message: 'Service unavailable' });
+
+		const db = getDb(platform.env.DB);
+		// Sesi diambil dari meja, bukan dari input client
+		const session = await db.query.tableSessions.findFirst({
+			where: and(
+				eq(tableSessions.tableId, params.id),
+				or(eq(tableSessions.status, 'open'), eq(tableSessions.status, 'processing'))
+			)
+		});
+		if (!session) return fail(404, { message: 'Tidak ada sesi aktif untuk meja ini' });
+
+		const data = await request.formData();
+		return requestTransfer(platform, session.id, data.get('proof'));
+	}
 };

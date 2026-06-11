@@ -3,10 +3,11 @@
 	import { invalidateAll } from '$app/navigation';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
+	import PaymentOptions from '$lib/components/PaymentOptions.svelte';
 	import { formatRupiah } from '$lib/utils';
 	import { subscribeRealtime } from '$lib/realtime';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	const table = $derived(data.table);
 	const session = $derived(data.session);
 
@@ -89,6 +90,10 @@
 								<span class="badge badge--paid">
 									<i class="ri-checkbox-circle-fill"></i> Lunas
 								</span>
+							{:else if session.paymentStatus === 'pending'}
+								<span class="badge badge--pending-pay">
+									<i class="ri-time-line"></i> Menunggu Konfirmasi
+								</span>
 							{/if}
 						</div>
 					</div>
@@ -155,18 +160,21 @@
 						<span>{formatRupiah(session.totalPrice)}</span>
 					</div>
 
-					{#if session.paymentStatus === 'unpaid'}
-						<div class="bill-pay-hint">
-							<i class="ri-information-line"></i>
-							<span>Silakan beritahu kasir jika ingin membayar.</span>
-						</div>
-					{:else}
+					{#if session.paymentStatus === 'paid'}
 						<div class="bill-paid-badge">
 							<i class="ri-checkbox-circle-fill"></i>
 							<span>Pembayaran diterima. Terima kasih!</span>
 						</div>
 					{/if}
 				</div>
+
+				<!-- Pilihan pembayaran -->
+				<PaymentOptions
+					paymentStatus={session.paymentStatus}
+					totalPrice={session.totalPrice}
+					bank={data.bank}
+					errorMessage={form?.message}
+				/>
 
 				<!-- Actions -->
 				<div class="bill-actions">
@@ -284,6 +292,11 @@
 
 	.badge--paid {
 		background-color: hsla(142, 71%, 45%, 0.8);
+		color: white;
+	}
+
+	.badge--pending-pay {
+		background-color: hsla(45, 93%, 47%, 0.85);
 		color: white;
 	}
 
@@ -463,24 +476,6 @@
 		margin-top: 0.5rem;
 		border-top: 1px solid hsla(353, 16%, 32%, 0.1);
 		margin-bottom: 1rem;
-	}
-
-	.bill-pay-hint {
-		display: flex;
-		align-items: flex-start;
-		column-gap: 0.5rem;
-		font-size: var(--smaller-font-size);
-		color: var(--text-color-light);
-		background-color: hsla(353, 16%, 32%, 0.06);
-		padding: 0.75rem 1rem;
-		border-radius: 0.75rem;
-	}
-
-	.bill-pay-hint i {
-		color: var(--first-color);
-		font-size: 1rem;
-		flex-shrink: 0;
-		margin-top: 0.1rem;
 	}
 
 	.bill-paid-badge {

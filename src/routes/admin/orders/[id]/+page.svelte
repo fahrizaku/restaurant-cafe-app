@@ -117,6 +117,12 @@
 				>
 					<CheckCircle2 size={14} /> Lunas
 				</span>
+			{:else if session.paymentStatus === 'pending'}
+				<span
+					class="bg-warning-50 text-warning-600 dark:bg-warning-500/10 inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium"
+				>
+					<AlertCircle size={14} /> Menunggu Konfirmasi
+				</span>
 			{/if}
 		</div>
 	</div>
@@ -278,6 +284,8 @@
 							{#if session.paymentStatus === 'paid'}
 								<span class="text-success-600 font-medium">Lunas</span>
 								{#if session.paymentMethod}· {paymentMethodLabel[session.paymentMethod]}{/if}
+							{:else if session.paymentStatus === 'pending'}
+								<span class="text-warning-600 font-medium">Menunggu Konfirmasi Transfer</span>
 							{:else}
 								<span class="text-gray-400">Belum Bayar</span>
 							{/if}
@@ -293,6 +301,66 @@
 					{/if}
 				</dl>
 			</div>
+
+			<!-- Konfirmasi Transfer (customer klaim sudah bayar) -->
+			{#if session.paymentStatus === 'pending'}
+				<div
+					class="border-warning-300 dark:border-warning-500/40 rounded-2xl border-2 bg-white p-5 dark:bg-gray-900"
+				>
+					<h2 class="mb-1 text-base font-semibold text-gray-800 dark:text-white">
+						Konfirmasi Transfer
+					</h2>
+					<p class="mb-3 text-xs text-gray-400">
+						Customer mengklaim sudah transfer {formatRupiah(session.totalPrice)}. Periksa mutasi
+						rekening sebelum konfirmasi.
+					</p>
+
+					{#if session.paymentProof}
+						<a href="/admin/payment-proof/{session.paymentProof}" target="_blank" rel="noopener">
+							<img
+								src="/admin/payment-proof/{session.paymentProof}"
+								alt="Bukti transfer"
+								class="mb-4 max-h-64 w-full rounded-xl border border-gray-200 object-contain dark:border-gray-700"
+							/>
+						</a>
+					{:else}
+						<p class="mb-4 text-sm text-gray-400">Tidak ada bukti transfer terlampir.</p>
+					{/if}
+
+					<div class="space-y-2">
+						<form method="POST" action="?/markPaid" use:enhance={() => () => invalidateAll()}>
+							<input type="hidden" name="paymentMethod" value="transfer" />
+							<button
+								type="submit"
+								class="bg-success-500 hover:bg-success-600 w-full rounded-xl py-2.5 text-sm font-medium text-white"
+							>
+								Konfirmasi — Pembayaran Diterima
+							</button>
+						</form>
+						<form method="POST" action="?/rejectTransfer" use:enhance={() => () => invalidateAll()}>
+							<button
+								type="submit"
+								class="border-error-300 text-error-500 hover:bg-error-50 dark:border-error-500/30 w-full rounded-xl border py-2.5 text-sm font-medium"
+								onclick={(e) => {
+									e.preventDefault();
+									const formEl = (e.currentTarget as HTMLButtonElement).closest(
+										'form'
+									) as HTMLFormElement;
+									confirmDialog = {
+										title: 'Tolak klaim transfer?',
+										message: 'Status kembali ke belum bayar dan bukti transfer dihapus.',
+										confirmLabel: 'Tolak',
+										confirmClass: 'bg-error-500 hover:bg-error-600',
+										onConfirm: () => formEl.requestSubmit()
+									};
+								}}
+							>
+								Tolak — Transfer Tidak Ditemukan
+							</button>
+						</form>
+					</div>
+				</div>
+			{/if}
 
 			<!-- Payment -->
 			{#if session.paymentStatus === 'unpaid' && session.status === 'open'}

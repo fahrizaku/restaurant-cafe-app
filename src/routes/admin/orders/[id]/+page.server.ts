@@ -162,6 +162,41 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
+	rejectTransfer: async ({ params, platform }) => {
+		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
+
+		const db = getDb(platform.env.DB);
+		const session = await db.query.tableSessions.findFirst({
+			where: eq(tableSessions.id, params.id)
+		});
+		if (!session) return fail(404, { message: 'Sesi tidak ditemukan' });
+		if (session.paymentStatus !== 'pending') {
+			return fail(400, { message: 'Tidak ada klaim transfer yang menunggu konfirmasi' });
+		}
+
+		await db
+			.update(tableSessions)
+			.set({ paymentStatus: 'unpaid', paymentMethod: null, paymentProof: null })
+			.where(eq(tableSessions.id, params.id));
+
+		// Hapus bukti dari R2 (best-effort)
+		if (session.paymentProof && platform.env.BUCKET) {
+			try {
+				await platform.env.BUCKET.delete(session.paymentProof);
+			} catch {
+				// abaikan — objek yatim tidak mengganggu
+			}
+		}
+
+		await pusherTrigger(
+			platform.env,
+			sessionChannels(params.id, session.tableId),
+			'session-updated',
+			{ sessionId: params.id }
+		);
+		return { success: true };
+	},
+
 	updateBatchStatus: async ({ request, params, platform }) => {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
