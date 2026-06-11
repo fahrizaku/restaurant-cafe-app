@@ -43,7 +43,7 @@ export const actions: Actions = {
 
 		if (!itemsJson) return fail(400, { message: 'Invalid order data' });
 
-		let rawItems: Array<{ menuId: string; quantity: number }>;
+		let rawItems: Array<{ menuId: string; quantity: number; notes?: string }>;
 		try {
 			rawItems = JSON.parse(itemsJson);
 		} catch {
@@ -53,6 +53,11 @@ export const actions: Actions = {
 		const result = await processOrder(platform, cookies, tableId, customerName, rawItems);
 		if ('status' in result) return result;
 
-		redirect(303, result.tableId ? `/table/${result.tableId}` : `/order/status/${result.sessionId}`);
+		redirect(
+			303,
+			result.tableId
+				? `/table/${result.tableId}?ordered=1`
+				: `/order/status/${result.sessionId}?ordered=1`
+		);
 	}
 };

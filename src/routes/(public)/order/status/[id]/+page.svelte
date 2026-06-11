@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidateAll, replaceState } from '$app/navigation';
+	import { page } from '$app/state';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import PaymentOptions from '$lib/components/PaymentOptions.svelte';
@@ -50,6 +51,13 @@
 
 	// Realtime via Pusher; fallback polling 10 detik jika belum dikonfigurasi
 	onMount(() => {
+		// Konfirmasi sukses setelah redirect dari cart (?ordered=1), lalu bersihkan URL
+		if (page.url.searchParams.has('ordered')) {
+			showToast('Pesanan terkirim! Selesaikan pembayaran agar pesanan diproses.');
+			const cleanUrl = new URL(page.url.href);
+			cleanUrl.searchParams.delete('ordered');
+			setTimeout(() => replaceState(cleanUrl, {}), 0);
+		}
 		if (data.pusher) {
 			const cleanupSound = initNotificationSound();
 			const unsubscribe = subscribeRealtime(
@@ -175,6 +183,9 @@
 										<p class="batch__item-qty">
 											{item.quantity} × {formatRupiah(item.priceAtTime)}
 										</p>
+										{#if item.notes}
+											<p class="batch__item-notes">“{item.notes}”</p>
+										{/if}
 									</div>
 									<span class="batch__item-total">
 										{formatRupiah(item.priceAtTime * item.quantity)}
@@ -225,14 +236,18 @@
 			<!-- Actions -->
 			<div class="bill-actions">
 				{#if session.status === 'open'}
-					<a href="/menu{session.tableId ? '?table=' + session.tableId : ''}" class="button">
-						<i class="ri-add-line"></i> Pesan Lagi
-					</a>
+					<div class="bill-processing-hint">
+						<i class="ri-error-warning-line"></i>
+						<span>Selesaikan pembayaran di atas agar pesanan diproses.</span>
+					</div>
 				{:else if session.status === 'processing'}
 					<div class="bill-processing-hint">
 						<i class="ri-restaurant-2-line"></i>
 						<span>Pesanan Anda sedang disiapkan. Mohon tunggu.</span>
 					</div>
+					<a href="/menu{session.tableId ? '?table=' + session.tableId : ''}" class="button">
+						<i class="ri-add-line"></i> Pesan Lagi
+					</a>
 				{/if}
 				<p class="bill-refresh-hint">
 					<i class="ri-refresh-line"></i>
@@ -415,6 +430,12 @@
 	.batch__item-qty {
 		font-size: var(--smaller-font-size);
 		color: var(--text-color-light);
+	}
+	.batch__item-notes {
+		font-size: var(--smaller-font-size);
+		color: var(--first-color);
+		font-style: italic;
+		margin-top: 0.125rem;
 	}
 	.batch__item-total {
 		font-family: var(--second-font);

@@ -77,6 +77,14 @@
 											<i class="ri-add-line"></i>
 										</button>
 									</div>
+									<input
+										type="text"
+										class="item-notes"
+										placeholder="Catatan (opsional): mis. tanpa gula, pedas sedang"
+										maxlength="200"
+										value={item.notes ?? ''}
+										oninput={(e) => cart.updateNotes(item.menuId, e.currentTarget.value)}
+									/>
 								</div>
 								<button
 									onclick={() => cart.remove(item.menuId)}
@@ -94,22 +102,30 @@
 							<span>Subtotal ({cart.count} item)</span>
 							<span>{formatRupiah(cart.total)}</span>
 						</div>
+						<div class="summary-total">
+							<span>Total</span>
+							<span>{formatRupiah(cart.total)}</span>
+						</div>
 
 						{#if data.activeSession}
-							<div class="summary-row hint">
-								<span>Tagihan sebelumnya</span>
-								<span>{formatRupiah(data.activeSession.totalPrice)}</span>
+							<!-- Bayar-dulu: order baru ditolak selama tagihan sebelumnya belum dibayar -->
+							<div class="unpaid-notice" role="alert">
+								<i class="ri-error-warning-line"></i>
+								<p>
+									Masih ada tagihan <strong>{formatRupiah(data.activeSession.totalPrice)}</strong>
+									yang belum dibayar. Selesaikan pembayaran terlebih dahulu — keranjang Anda tetap
+									tersimpan.
+								</p>
 							</div>
-							<div class="summary-total">
-								<span>Total Akhir</span>
-								<span>{formatRupiah(data.activeSession.totalPrice + cart.total)}</span>
-							</div>
+							<a
+								href={data.tableId
+									? `/table/${data.tableId}`
+									: `/order/status/${data.activeSession.id}`}
+								class="button w-full unpaid-notice__cta"
+							>
+								Bayar Tagihan Sekarang
+							</a>
 						{:else}
-							<div class="summary-total">
-								<span>Total</span>
-								<span>{formatRupiah(cart.total)}</span>
-							</div>
-						{/if}
 
 						{#if form?.message}
 							<p class="order-error" role="alert">{form.message}</p>
@@ -132,7 +148,7 @@
 						>
 							<input type="hidden" name="tableId" value={data.tableId || ''} />
 
-							{#if !data.tableId && !data.activeSession}
+							{#if !data.tableId}
 								<div class="input-group">
 									<label for="customerName" class="input-label">Nama / Info Meja</label>
 									<input
@@ -154,7 +170,8 @@
 										menuId: i.menuId,
 										name: i.name,
 										price: i.price,
-										quantity: i.quantity
+										quantity: i.quantity,
+										notes: i.notes?.trim() || undefined
 									}))
 								)}
 							/>
@@ -162,6 +179,7 @@
 								{ordering ? 'Mengirim Pesanan...' : `Pesan Sekarang · ${formatRupiah(cart.total)}`}
 							</button>
 						</form>
+						{/if}
 
 						<button onclick={() => cart.clear()} class="clear-cart-link">
 							Kosongkan Keranjang
@@ -282,6 +300,25 @@
 		min-width: 24px;
 		text-align: center;
 	}
+	.item-notes {
+		width: 100%;
+		margin-top: 0.75rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.5rem;
+		background-color: var(--body-color);
+		border: 1px solid transparent;
+		color: var(--title-color);
+		font-family: var(--body-font);
+		font-size: var(--smaller-font-size);
+		transition: border-color 0.3s;
+	}
+	.item-notes::placeholder {
+		color: var(--text-color-light);
+	}
+	.item-notes:focus {
+		border-color: var(--first-color);
+		outline: none;
+	}
 	.remove-btn {
 		position: absolute;
 		top: 1rem;
@@ -307,12 +344,6 @@
 		font-size: var(--normal-font-size);
 		color: var(--text-color);
 		margin-bottom: 0.75rem;
-	}
-	.summary-row.hint {
-		font-size: var(--small-font-size);
-		color: var(--text-color-light);
-		border-top: 1px dashed var(--text-color-light);
-		padding-top: 0.75rem;
 	}
 	.summary-total {
 		display: flex;
@@ -354,6 +385,25 @@
 	.text-input:focus {
 		border-color: var(--first-color);
 		outline: none;
+	}
+
+	.unpaid-notice {
+		display: flex;
+		align-items: flex-start;
+		column-gap: 0.5rem;
+		background-color: hsla(38, 95%, 55%, 0.12);
+		color: hsl(38, 85%, 30%);
+		border-radius: 0.75rem;
+		padding: 0.75rem 1rem;
+		font-size: var(--small-font-size);
+		margin-bottom: 1rem;
+	}
+	.unpaid-notice i {
+		font-size: 1.1rem;
+		flex-shrink: 0;
+	}
+	.unpaid-notice__cta {
+		text-align: center;
 	}
 
 	.order-error {

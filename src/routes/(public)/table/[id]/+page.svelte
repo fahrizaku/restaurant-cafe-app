@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { invalidateAll } from '$app/navigation';
+	import { invalidateAll, replaceState } from '$app/navigation';
+	import { page } from '$app/state';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import PaymentOptions from '$lib/components/PaymentOptions.svelte';
@@ -10,7 +11,15 @@
 
 	let { data, form } = $props();
 	const table = $derived(data.table);
-	const session = $derived(data.session);
+	const sessions = $derived(data.sessions);
+	// Bayar-dulu: maksimal satu sesi `open` (tagihan belum dibayar) per meja
+	const unpaidSession = $derived(sessions.find((s) => s.status === 'open') ?? null);
+
+	function itemCount(s: (typeof sessions)[number]) {
+		return s.batches
+			.filter((b) => b.status !== 'cancelled')
+			.reduce((sum, b) => sum + b.items.reduce((si, i) => si + i.quantity, 0), 0);
+	}
 
 	const batchStatusLabel: Record<string, string> = {
 		pending: 'Menunggu dapur',
@@ -50,6 +59,13 @@
 
 	// Realtime via Pusher; fallback polling 10 detik jika belum dikonfigurasi
 	onMount(() => {
+		// Konfirmasi sukses setelah redirect dari cart (?ordered=1), lalu bersihkan URL
+		if (page.url.searchParams.has('ordered')) {
+			showToast('Pesanan terkirim! Selesaikan pembayaran agar pesanan diproses.');
+			const cleanUrl = new URL(page.url.href);
+			cleanUrl.searchParams.delete('ordered');
+			setTimeout(() => replaceState(cleanUrl, {}), 0);
+		}
 		if (data.pusher) {
 			const cleanupSound = initNotificationSound();
 			const unsubscribe = subscribeRealtime(
@@ -89,7 +105,6 @@
 		return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 	}
 
-	const activeBatches = $derived(session?.batches.filter((b) => b.status !== 'cancelled') ?? []);
 </script>
 
 <svelte:head>
@@ -108,7 +123,7 @@
 <main class="main has-mobile-nav">
 	<section class="section">
 		<div class="container">
-			{#if !session}
+			{#if sessions.length === 0}
 				<!-- Belum ada pesanan -->
 				<div class="empty-state">
 					<div class="empty-state__icon">
@@ -119,6 +134,8 @@
 					<a href="/menu?table={table.id}" class="button">Lihat Menu</a>
 				</div>
 			{:else}
+				{#each sessions as session (session.id)}
+				<div class="session-block">
 				<!-- Header bill -->
 				<div class="bill-header">
 					<div class="bill-header__info">
@@ -133,7 +150,7 @@
 								</span>
 							{:else}
 								<span class="badge badge--open">
-									<i class="ri-record-circle-fill"></i> Sesi Aktif
+									<i class="ri-error-warning-fill"></i> Menunggu Pembayaran
 								</span>
 							{/if}
 							{#if session.paymentStatus === 'paid'}
@@ -148,7 +165,9 @@
 						</div>
 					</div>
 					<div class="bill-header__total">
-						<span class="bill-header__total-label">Total Sementara</span>
+						<span class="bill-header__total-label">
+							{session.paymentStatus === 'paid' ? 'Total' : 'Tagihan'}
+						</span>
 						<span class="bill-header__total-value">{formatRupiah(session.totalPrice)}</span>
 					</div>
 				</div>
@@ -181,6 +200,9 @@
 											<p class="batch__item-qty">
 												{item.quantity} × {formatRupiah(item.priceAtTime)}
 											</p>
+											{#if item.notes}
+												<p class="batch__item-notes">“{item.notes}”</p>
+											{/if}
 										</div>
 										<span class="batch__item-total">
 											{formatRupiah(item.priceAtTime * item.quantity)}
@@ -197,9 +219,9 @@
 					{/each}
 				</div>
 
-				<!-- Total & aksi -->
+				<!-- Total & ringkasan -->
 				<div class="bill-summary">
-					{#each [['Item', activeBatches.reduce((s, b) => s + b.items.reduce((si, i) => si + i.quantity, 0), 0) + ' pcs'], ['Subtotal', formatRupiah(session.totalPrice)]] as [label, value]}
+					{#each [['Item', itemCount(session) + ' pcs'], ['Subtotal', formatRupiah(session.totalPrice)]] as [label, value]}
 						<div class="bill-summary__row">
 							<span>{label}</span>
 							<span>{value}</span>
@@ -213,33 +235,40 @@
 					{#if session.paymentStatus === 'paid'}
 						<div class="bill-paid-badge">
 							<i class="ri-checkbox-circle-fill"></i>
-							<span>Pembayaran diterima. Terima kasih!</span>
+							<span>Pembayaran diterima. Pesanan sedang disiapkan.</span>
 						</div>
 					{/if}
 				</div>
 
-				<!-- Pilihan pembayaran -->
-				<PaymentOptions
-					paymentStatus={session.paymentStatus}
-					totalPrice={session.totalPrice}
-					bank={data.bank}
-					errorMessage={form?.message}
-				/>
+				<!-- Pilihan pembayaran — hanya untuk tagihan yang belum dibayar -->
+				{#if session.status === 'open'}
+					<PaymentOptions
+						paymentStatus={session.paymentStatus}
+						totalPrice={session.totalPrice}
+						bank={data.bank}
+						errorMessage={form?.message}
+					/>
+				{/if}
+				</div>
+				{/each}
 
 				<!-- Actions -->
 				<div class="bill-actions">
-					{#if session.status === 'open'}
+					{#if unpaidSession}
+						<div class="bill-processing-hint">
+							<i class="ri-error-warning-line"></i>
+							<span>Selesaikan pembayaran di atas untuk dapat memesan lagi.</span>
+						</div>
+					{:else}
 						<a href="/menu?table={table.id}" class="button">
 							<i class="ri-add-line"></i> Pesan Lagi
 						</a>
-					{:else if session.status === 'processing'}
-						<div class="bill-processing-hint">
-							<i class="ri-restaurant-2-line"></i>
-							<span>Pesanan Anda sedang disiapkan. Mohon tunggu.</span>
-						</div>
 					{/if}
 					<p class="bill-refresh-hint">
-						<i class="ri-refresh-line"></i> Diperbarui otomatis setiap 10 detik
+						<i class="ri-refresh-line"></i>
+						{data.pusher
+							? 'Diperbarui otomatis secara realtime'
+							: 'Diperbarui otomatis setiap 10 detik'}
 					</p>
 				</div>
 			{/if}
@@ -247,7 +276,7 @@
 	</section>
 </main>
 
-<MobileNav activeSessionId={session?.id} tableId={table.id} />
+<MobileNav activeSessionId={sessions[0]?.id} tableId={table.id} />
 
 <footer class="footer pb-mobile">
 	<div class="footer__container container">
@@ -263,6 +292,15 @@
 		.main {
 			padding-bottom: 4rem;
 		}
+	}
+
+	/* Satu blok = satu tagihan (sesi); bisa tampil beberapa sekaligus */
+	.session-block {
+		margin-bottom: 2.5rem;
+	}
+
+	.session-block:last-of-type {
+		margin-bottom: 1.5rem;
 	}
 
 	/* Empty state */
@@ -472,6 +510,13 @@
 	.batch__item-qty {
 		font-size: var(--smaller-font-size);
 		color: var(--text-color-light);
+	}
+
+	.batch__item-notes {
+		font-size: var(--smaller-font-size);
+		color: var(--first-color);
+		font-style: italic;
+		margin-top: 0.125rem;
 	}
 
 	.batch__item-total {

@@ -6,6 +6,7 @@ export interface CartItem {
 	price: number;
 	image: string | null;
 	quantity: number;
+	notes?: string;
 }
 
 const STORAGE_KEY = 'cafe-cart';
@@ -69,6 +70,12 @@ function createCart() {
 		persist();
 	}
 
+	function updateNotes(menuId: string, notes: string) {
+		const item = items.find((i) => i.menuId === menuId);
+		if (item) item.notes = notes.slice(0, 200);
+		persist();
+	}
+
 	function clear() {
 		items.splice(0, items.length);
 		persist();
@@ -87,6 +94,7 @@ function createCart() {
 		add,
 		remove,
 		updateQty,
+		updateNotes,
 		clear
 	};
 }

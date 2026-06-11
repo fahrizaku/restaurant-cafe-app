@@ -70,9 +70,10 @@
 					href={data.table ? `/table/${data.table.id}` : `/order/status/${data.activeSession.id}`}
 					class="bill-banner"
 				>
-					<i class="ri-receipt-line"></i>
+					<i class="ri-error-warning-line"></i>
 					<span
-						>Tagihan saat ini: <strong>{formatRupiah(data.activeSession.totalPrice)}</strong></span
+						>Tagihan belum dibayar: <strong>{formatRupiah(data.activeSession.totalPrice)}</strong>
+						— bayar sekarang</span
 					>
 					<i class="ri-arrow-right-s-line"></i>
 				</a>

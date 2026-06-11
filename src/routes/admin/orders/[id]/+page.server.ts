@@ -230,6 +230,19 @@ export const actions: Actions = {
 		if (!batch) return fail(404, { message: 'Batch tidak ditemukan' });
 		if (batch.status === status) return { success: true };
 
+		// Kebijakan bayar-dulu: pesanan baru boleh diproses setelah pembayaran dikonfirmasi
+		if (status === 'processing' || status === 'done') {
+			const session = await db.query.tableSessions.findFirst({
+				where: eq(tableSessions.id, params.id),
+				columns: { paymentStatus: true }
+			});
+			if (session?.paymentStatus !== 'paid') {
+				return fail(400, {
+					message: 'Pesanan belum dibayar — konfirmasi pembayaran (tandai lunas) terlebih dahulu.'
+				});
+			}
+		}
+
 		const [, [updated]] = await db.batch([
 			db.update(orderBatches).set({ status }).where(eq(orderBatches.id, batchId)),
 			// Total sesi selalu = jumlah batch yang tidak dibatalkan

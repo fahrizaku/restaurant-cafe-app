@@ -67,46 +67,52 @@ export async function processOrder(
 	}));
 	const batchTotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-	// Cari sesi aktif
-	let session = null;
+	// Kebijakan bayar-dulu: satu order = satu tagihan. Sesi `open` berarti
+	// tagihan belum dibayar (markPaid memindahkan sesi ke `processing`),
+	// jadi order baru ditolak sampai tagihan itu diselesaikan.
+	let existing = null;
 	if (tableId) {
-		session = await db.query.tableSessions.findFirst({
+		existing = await db.query.tableSessions.findFirst({
 			where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
 		});
 	} else if (cookies) {
 		const sessionId = cookies.get('session_id');
 		if (sessionId) {
-			session = await db.query.tableSessions.findFirst({
+			existing = await db.query.tableSessions.findFirst({
 				where: and(eq(tableSessions.id, sessionId), eq(tableSessions.status, 'open'))
 			});
 		}
 	}
+	if (existing) {
+		return fail(400, {
+			message:
+				'Masih ada pesanan yang belum dibayar. Selesaikan pembayaran terlebih dahulu, lalu pesan lagi.'
+		});
+	}
 
-	// Buat sesi baru jika belum ada
-	if (!session) {
-		if (!tableId && !customerName) {
-			return fail(400, { message: 'Nama atau Nomor Meja diperlukan' });
-		}
+	// Buat sesi baru — satu order selalu sesi (tagihan) baru
+	if (!tableId && !customerName) {
+		return fail(400, { message: 'Nama atau Nomor Meja diperlukan' });
+	}
 
-		try {
-			const [newSession] = await db
-				.insert(tableSessions)
-				.values({ tableId: tableId || null, customerName: customerName || null, totalPrice: 0 })
-				.returning();
-			session = newSession;
-		} catch {
-			// Unique constraint: request lain sudah buat sesi untuk meja ini duluan
-			if (tableId) {
-				session = await db.query.tableSessions.findFirst({
-					where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
-				});
-			}
-			if (!session) return fail(500, { message: 'Gagal membuat sesi order' });
-		}
+	let session;
+	try {
+		const [newSession] = await db
+			.insert(tableSessions)
+			.values({ tableId: tableId || null, customerName: customerName || null, totalPrice: 0 })
+			.returning();
+		session = newSession;
+	} catch {
+		// Unique constraint: request lain sudah buat sesi untuk meja ini duluan.
+		// Bayar-dulu: jangan tumpangi tagihan order lain — tolak.
+		return fail(400, {
+			message:
+				'Masih ada pesanan yang belum dibayar. Selesaikan pembayaran terlebih dahulu, lalu pesan lagi.'
+		});
+	}
 
-		if (!tableId && cookies) {
-			cookies.set('session_id', session.id, { path: '/', maxAge: 60 * 60 * 12 });
-		}
+	if (!tableId && cookies) {
+		cookies.set('session_id', session.id, { path: '/', maxAge: 60 * 60 * 12 });
 	}
 
 	// Insert batch + items + update total dalam satu batch D1 (atomic)
