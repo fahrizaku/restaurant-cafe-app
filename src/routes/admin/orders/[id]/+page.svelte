@@ -12,7 +12,8 @@
 		Banknote,
 		QrCode,
 		Landmark,
-		AlertCircle
+		AlertCircle,
+		Printer
 	} from 'lucide-svelte';
 
 	const paymentOptions = [
@@ -83,7 +84,7 @@
 				/>
 			</svg>
 		</a>
-		<div>
+		<div class="flex-1">
 			<h1 class="text-2xl font-semibold text-gray-800 dark:text-white">
 				Sesi <span class="font-mono">#{session.id.slice(0, 8)}</span>
 			</h1>
@@ -93,7 +94,16 @@
 				)}
 			</p>
 		</div>
-		<div class="ml-2 flex gap-2">
+		<a
+			href="/admin/orders/{session.id}/print"
+			target="_blank"
+			rel="noopener"
+			class="ml-auto flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+		>
+			<Printer size={15} />
+			Print Struk
+		</a>
+		<div class="flex gap-2">
 			{#if session.status === 'open'}
 				<span
 					class="bg-success-50 text-success-600 inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium"

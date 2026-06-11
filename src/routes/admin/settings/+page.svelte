@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { AlertCircle, CheckCircle2, Landmark } from 'lucide-svelte';
+	import { AlertCircle, CheckCircle2, Landmark, Store } from 'lucide-svelte';
 
 	let { data, form } = $props();
 	let saving = $state(false);
+	let savingCafe = $state(false);
 </script>
 
 <div class="max-w-2xl space-y-6">
@@ -28,6 +29,57 @@
 		</div>
 	{/if}
 
+	<!-- Info Cafe -->
+	<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+		<div class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-800">
+			<Store size={18} class="text-brand-500" />
+			<div>
+				<h2 class="text-base font-semibold text-gray-800 dark:text-white">Info Cafe</h2>
+				<p class="text-xs text-gray-400">Ditampilkan di header struk print.</p>
+			</div>
+		</div>
+
+		<form
+			method="POST"
+			action="?/saveCafe"
+			use:enhance={() => {
+				savingCafe = true;
+				return async ({ update }) => {
+					await update();
+					savingCafe = false;
+				};
+			}}
+			class="space-y-4 p-5"
+		>
+			<div>
+				<label
+					for="cafeName"
+					class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+				>
+					Nama Cafe
+				</label>
+				<input
+					type="text"
+					id="cafeName"
+					name="cafeName"
+					value={data.settings.cafe_name ?? ''}
+					placeholder="Contoh: Warung Kopi Santai"
+					maxlength="100"
+					class="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+				/>
+			</div>
+
+			<button
+				type="submit"
+				disabled={savingCafe}
+				class="bg-brand-500 hover:bg-brand-600 rounded-xl px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50"
+			>
+				{savingCafe ? 'Menyimpan...' : 'Simpan'}
+			</button>
+		</form>
+	</div>
+
+	<!-- Rekening Transfer -->
 	<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
 		<div class="flex items-center gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-800">
 			<Landmark size={18} class="text-brand-500" />

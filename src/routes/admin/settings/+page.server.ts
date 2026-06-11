@@ -14,6 +14,18 @@ export const load: PageServerLoad = async ({ platform }) => {
 };
 
 export const actions: Actions = {
+	saveCafe: async ({ request, platform }) => {
+		if (!platform?.env.DB) return fail(500, { message: 'DB tidak tersedia' });
+
+		const data = await request.formData();
+		const cafeName = ((data.get('cafeName') as string) ?? '').trim().slice(0, 100);
+
+		const db = getDb(platform.env.DB);
+		await setSetting(db, 'cafe_name', cafeName);
+
+		return { success: true };
+	},
+
 	saveBank: async ({ request, platform }) => {
 		if (!platform?.env.DB) return fail(500, { message: 'DB tidak tersedia' });
 
