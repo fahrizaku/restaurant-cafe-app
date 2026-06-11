@@ -1,26 +1,44 @@
 import { getDb } from '$lib/server/db';
 import { pusherClientConfig, pusherTrigger, sessionChannels } from '$lib/server/pusher';
 import { tableSessions, orderBatches } from '$lib/server/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
+const PAGE_SIZE = 20;
+
 export const load: PageServerLoad = async ({ platform, url }) => {
-	if (!platform?.env.DB) return { sessions: [], currentStatus: null, pusher: null };
+	if (!platform?.env.DB) {
+		return { sessions: [], currentStatus: null, page: 1, pageSize: PAGE_SIZE, total: 0, pusher: null };
+	}
 
 	const db = getDb(platform.env.DB);
 	const status = url.searchParams.get('status') as typeof tableSessions.$inferSelect.status | null;
+	const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10) || 1);
 
-	const sessions = await db.query.tableSessions.findMany({
-		where: status ? eq(tableSessions.status, status) : undefined,
-		orderBy: (s, { desc }) => [desc(s.openedAt)],
-		with: {
-			table: true,
-			batches: { with: { items: true } }
-		}
-	});
+	const where = status ? eq(tableSessions.status, status) : undefined;
+	const [sessions, [{ total }]] = await Promise.all([
+		db.query.tableSessions.findMany({
+			where,
+			orderBy: (s, { desc }) => [desc(s.openedAt)],
+			limit: PAGE_SIZE,
+			offset: (page - 1) * PAGE_SIZE,
+			with: {
+				table: true,
+				batches: { with: { items: true } }
+			}
+		}),
+		db.select({ total: sql<number>`count(*)` }).from(tableSessions).where(where)
+	]);
 
-	return { sessions, currentStatus: status, pusher: pusherClientConfig(platform.env) };
+	return {
+		sessions,
+		currentStatus: status,
+		page,
+		pageSize: PAGE_SIZE,
+		total,
+		pusher: pusherClientConfig(platform.env)
+	};
 };
 
 export const actions: Actions = {
@@ -56,11 +74,15 @@ export const actions: Actions = {
 		if (!id) return fail(400, { message: 'ID required' });
 
 		const db = getDb(platform.env.DB);
+		// Hanya sesi yang sudah dibayar yang boleh diselesaikan
 		const [updated] = await db
 			.update(tableSessions)
 			.set({ status: 'closed', closedAt: new Date() })
-			.where(eq(tableSessions.id, id))
+			.where(and(eq(tableSessions.id, id), eq(tableSessions.paymentStatus, 'paid')))
 			.returning({ tableId: tableSessions.tableId });
+		if (!updated) {
+			return fail(400, { message: 'Sesi belum dibayar — tandai lunas terlebih dahulu.' });
+		}
 		await pusherTrigger(platform.env, sessionChannels(id, updated?.tableId), 'session-updated', {
 			sessionId: id
 		});

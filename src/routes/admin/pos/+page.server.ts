@@ -1,8 +1,6 @@
 import { getDb } from '$lib/server/db';
-import { pusherTrigger, sessionChannels } from '$lib/server/pusher';
-import { tableSessions, orderBatches, orderItems } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
 import { fail, redirect } from '@sveltejs/kit';
+import { processOrder } from '$lib/server/order';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ platform }) => {
@@ -39,77 +37,27 @@ export const load: PageServerLoad = async ({ platform }) => {
 
 export const actions: Actions = {
 	order: async ({ request, platform }) => {
-		if (!platform?.env.DB) return fail(500, { message: 'DB tidak tersedia' });
-
 		const data = await request.formData();
-		const tableId = data.get('tableId') as string;
-		const customerName = data.get('customerName') as string;
+		const tableId = (data.get('tableId') as string) || null;
+		const customerName = (data.get('customerName') as string) || null;
 		const itemsJson = data.get('items') as string;
 
 		if ((!tableId && !customerName) || !itemsJson) {
 			return fail(400, { message: 'Meja atau Nama Pelanggan diperlukan' });
 		}
 
-		let items: Array<{ menuId: string; quantity: number; price: number; notes?: string }>;
+		let rawItems: Array<{ menuId: string; quantity: number; notes?: string }>;
 		try {
-			items = JSON.parse(itemsJson);
+			rawItems = JSON.parse(itemsJson);
 		} catch {
 			return fail(400, { message: 'Format data tidak valid' });
 		}
 
-		if (!items.length) return fail(400, { message: 'Pesanan kosong' });
+		// cookies = null: order POS tidak terikat browser kasir,
+		// takeaway selalu membuat sesi baru
+		const result = await processOrder(platform, null, tableId, customerName, rawItems);
+		if ('status' in result) return result;
 
-		const db = getDb(platform.env.DB);
-		const batchTotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-		let session = null;
-		if (tableId) {
-			session = await db.query.tableSessions.findFirst({
-				where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
-			});
-		}
-
-		if (!session) {
-			const [newSession] = await db
-				.insert(tableSessions)
-				.values({
-					tableId: tableId || null,
-					customerName: customerName || null,
-					totalPrice: 0
-				})
-				.returning();
-			session = newSession;
-		}
-
-		const [batch] = await db
-			.insert(orderBatches)
-			.values({ sessionId: session.id, totalPrice: batchTotal })
-			.returning();
-
-		await db.insert(orderItems).values(
-			items.map((i) => ({
-				batchId: batch.id,
-				menuId: i.menuId,
-				quantity: i.quantity,
-				priceAtTime: i.price,
-				notes: i.notes || null
-			}))
-		);
-
-		// Reset paymentStatus jika sebelumnya sudah paid
-		await db
-			.update(tableSessions)
-			.set({ totalPrice: session.totalPrice + batchTotal, paymentStatus: 'unpaid' })
-			.where(eq(tableSessions.id, session.id));
-
-		// Notifikasi realtime ke admin & halaman status
-		await pusherTrigger(
-			platform.env,
-			sessionChannels(session.id, tableId || session.tableId),
-			'new-batch',
-			{ sessionId: session.id }
-		);
-
-		redirect(303, `/admin/orders/${session.id}`);
+		redirect(303, `/admin/orders/${result.sessionId}`);
 	}
 };

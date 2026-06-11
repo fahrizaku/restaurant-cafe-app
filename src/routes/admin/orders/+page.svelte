@@ -12,7 +12,8 @@
 		Banknote,
 		QrCode,
 		Landmark,
-		Eye
+		Eye,
+		AlertCircle
 	} from 'lucide-svelte';
 
 	const paymentOptions = [
@@ -21,7 +22,7 @@
 		{ val: 'transfer', label: 'Transfer Bank', Icon: Landmark }
 	];
 
-	let { data } = $props();
+	let { data, form } = $props();
 	let confirmDialog = $state<{
 		title: string;
 		message?: string;
@@ -55,6 +56,16 @@
 		return session.batches.reduce((s, b) => s + b.items.length, 0);
 	}
 
+	const totalPages = $derived(Math.max(1, Math.ceil(data.total / data.pageSize)));
+
+	function pageUrl(page: number) {
+		const params = new URLSearchParams();
+		if (data.currentStatus) params.set('status', data.currentStatus);
+		if (page > 1) params.set('page', String(page));
+		const qs = params.toString();
+		return `/admin/orders${qs ? '?' + qs : ''}`;
+	}
+
 	// Bunyi singkat saat ada order baru (best-effort; bisa diblokir autoplay policy)
 	function playNewOrderSound() {
 		try {
@@ -84,8 +95,17 @@
 <div class="space-y-6">
 	<div>
 		<h1 class="text-2xl font-semibold text-gray-800 dark:text-white">Sesi Order</h1>
-		<p class="text-sm text-gray-500 dark:text-gray-400">{data.sessions.length} sesi</p>
+		<p class="text-sm text-gray-500 dark:text-gray-400">{data.total} sesi</p>
 	</div>
+
+	{#if form?.message}
+		<div
+			class="border-error-200 bg-error-50 text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400 flex items-center gap-3 rounded-xl border px-4 py-3"
+		>
+			<AlertCircle size={16} class="shrink-0" />
+			<p class="text-sm">{form.message}</p>
+		</div>
+	{/if}
 
 	<!-- Status Tabs -->
 	<div class="flex w-fit gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
@@ -270,6 +290,34 @@
 				</tbody>
 			</table>
 		</div>
+
+		{#if totalPages > 1}
+			<div
+				class="flex items-center justify-between border-t border-gray-100 px-5 py-3 dark:border-gray-800"
+			>
+				<span class="text-sm text-gray-500 dark:text-gray-400">
+					Halaman {data.page} dari {totalPages}
+				</span>
+				<div class="flex gap-2">
+					{#if data.page > 1}
+						<a
+							href={pageUrl(data.page - 1)}
+							class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5"
+						>
+							Sebelumnya
+						</a>
+					{/if}
+					{#if data.page < totalPages}
+						<a
+							href={pageUrl(data.page + 1)}
+							class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/5"
+						>
+							Berikutnya
+						</a>
+					{/if}
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
 

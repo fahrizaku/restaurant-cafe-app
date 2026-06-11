@@ -6,7 +6,7 @@
 	import { formatRupiah } from '$lib/utils';
 	import { Trash2, ChevronLeft } from 'lucide-svelte';
 
-	let { data } = $props();
+	let { data, form } = $props();
 	let ordering = $state(false);
 </script>
 
@@ -109,6 +109,10 @@
 								<span>Total</span>
 								<span>{formatRupiah(cart.total)}</span>
 							</div>
+						{/if}
+
+						{#if form?.message}
+							<p class="order-error" role="alert">{form.message}</p>
 						{/if}
 
 						<form
@@ -350,6 +354,16 @@
 	.text-input:focus {
 		border-color: var(--first-color);
 		outline: none;
+	}
+
+	.order-error {
+		background-color: hsl(0, 85%, 96%);
+		color: hsl(0, 70%, 45%);
+		border: 1px solid hsl(0, 75%, 88%);
+		border-radius: 0.75rem;
+		padding: 0.75rem 1rem;
+		font-size: var(--small-font-size);
+		margin-bottom: 1rem;
 	}
 
 	.clear-cart-link {

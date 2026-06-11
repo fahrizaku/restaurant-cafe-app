@@ -25,9 +25,11 @@ tables
               └── order_items
 ```
 
-Satu kunjungan meja = satu sesi. Satu klik "Place Order" = satu batch. Semua batch terakumulasi jadi satu tagihan.
+Satu kunjungan meja = satu sesi. Satu klik "Place Order" = satu batch. Semua batch terakumulasi jadi satu tagihan. Invariant: `total_price` sesi = jumlah `total_price` batch yang tidak `cancelled` (dihitung ulang via subquery saat status batch berubah / reopen).
 
-**Lifecycle:** scan QR → sesi dibuat otomatis → customer order → batch baru → kasir update status → mark paid → close session.
+**Lifecycle:** scan QR → sesi dibuat otomatis → customer order → batch baru → kasir update status batch (pending → processing → done, bisa cancel/pulihkan per batch) → mark paid (sesi jadi `processing`) → complete (hanya jika sudah paid) → close session. Reopen sesi `cancelled` memulihkan batch-nya jadi `pending`; reopen ditolak jika meja sudah punya sesi open lain.
+
+Semua jalur order (menu publik, cart, POS kasir) lewat `processOrder()` di `src/lib/server/order.ts` — harga server-side, validasi quantity/tableId, atomic `db.batch`, dukungan `notes`. POS memanggil dengan `cookies = null` (takeaway selalu sesi baru). Partial unique index: satu sesi `open` per meja. `/admin/orders` paginated 20/halaman. Cart publik persist ke `localStorage` (key `cafe-cart`).
 
 ### Realtime (Pusher)
 

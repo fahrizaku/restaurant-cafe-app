@@ -8,11 +8,17 @@ import type { Cookies, ActionFailure } from '@sveltejs/kit';
 export interface RawOrderItem {
 	menuId: string;
 	quantity: number;
+	notes?: string;
 }
 
+/**
+ * Proses satu order (batch) untuk menu publik, cart, dan POS kasir.
+ * `cookies` null = mode POS: tanpa lookup/set cookie session_id,
+ * order takeaway selalu membuat sesi baru.
+ */
 export async function processOrder(
 	platform: App.Platform | undefined,
-	cookies: Cookies,
+	cookies: Cookies | null,
 	tableId: string | null,
 	customerName: string | null,
 	rawItems: RawOrderItem[]
@@ -40,20 +46,24 @@ export async function processOrder(
 
 	// Ambil harga dari DB — jangan pernah percaya harga dari client
 	const uniqueMenuIds = [...new Set(rawItems.map((i) => i.menuId))];
-	const menuRecords = await db
-		.select()
-		.from(menus)
-		.where(and(inArray(menus.id, uniqueMenuIds), eq(menus.isAvailable, true)));
+	const menuRecords = await db.select().from(menus).where(inArray(menus.id, uniqueMenuIds));
 
-	if (menuRecords.length !== uniqueMenuIds.length) {
-		return fail(400, { message: 'Beberapa menu tidak tersedia atau sudah tidak ada' });
+	const availableMenus = menuRecords.filter((m) => m.isAvailable);
+	if (availableMenus.length !== uniqueMenuIds.length) {
+		const unavailableNames = menuRecords.filter((m) => !m.isAvailable).map((m) => m.name);
+		return fail(400, {
+			message: unavailableNames.length
+				? `Menu tidak tersedia: ${unavailableNames.join(', ')}. Hapus dari keranjang lalu pesan lagi.`
+				: 'Beberapa menu sudah tidak ada. Muat ulang halaman menu.'
+		});
 	}
 
-	const menuMap = new Map(menuRecords.map((m) => [m.id, m]));
+	const menuMap = new Map(availableMenus.map((m) => [m.id, m]));
 	const items = rawItems.map((i) => ({
 		menuId: i.menuId,
 		quantity: i.quantity,
-		price: menuMap.get(i.menuId)!.price
+		price: menuMap.get(i.menuId)!.price,
+		notes: typeof i.notes === 'string' ? i.notes.trim().slice(0, 200) || null : null
 	}));
 	const batchTotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
@@ -63,7 +73,7 @@ export async function processOrder(
 		session = await db.query.tableSessions.findFirst({
 			where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
 		});
-	} else {
+	} else if (cookies) {
 		const sessionId = cookies.get('session_id');
 		if (sessionId) {
 			session = await db.query.tableSessions.findFirst({
@@ -94,7 +104,7 @@ export async function processOrder(
 			if (!session) return fail(500, { message: 'Gagal membuat sesi order' });
 		}
 
-		if (!tableId) {
+		if (!tableId && cookies) {
 			cookies.set('session_id', session.id, { path: '/', maxAge: 60 * 60 * 12 });
 		}
 	}
@@ -108,7 +118,8 @@ export async function processOrder(
 				batchId,
 				menuId: i.menuId,
 				quantity: i.quantity,
-				priceAtTime: i.price
+				priceAtTime: i.price,
+				notes: i.notes
 			}))
 		),
 		db

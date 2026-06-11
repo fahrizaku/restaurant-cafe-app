@@ -1,4 +1,6 @@
 import { getDb } from '$lib/server/db';
+import { menus, categories, tables, tableSessions } from '$lib/server/db/schema';
+import { inArray, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ platform }) => {
@@ -7,29 +9,31 @@ export const load: PageServerLoad = async ({ platform }) => {
 	}
 
 	const db = getDb(platform.env.DB);
+	const count = sql<number>`count(*)`;
 
-	const [menus, categories, sessions, tables] = await Promise.all([
-		db.query.menus.findMany(),
-		db.query.categories.findMany(),
-		db.query.tableSessions.findMany({
-			orderBy: (s, { desc }) => [desc(s.openedAt)],
-			limit: 5,
-			with: { table: true, batches: { with: { items: true } } }
-		}),
-		db.query.tables.findMany()
-	]);
-
-	const openSessions = sessions.filter(
-		(s) => s.status === 'open' || s.status === 'processing'
-	).length;
+	const [[menuCount], [categoryCount], [tableCount], [openCount], recentSessions] =
+		await Promise.all([
+			db.select({ c: count }).from(menus),
+			db.select({ c: count }).from(categories),
+			db.select({ c: count }).from(tables),
+			db
+				.select({ c: count })
+				.from(tableSessions)
+				.where(inArray(tableSessions.status, ['open', 'processing'])),
+			db.query.tableSessions.findMany({
+				orderBy: (s, { desc }) => [desc(s.openedAt)],
+				limit: 5,
+				with: { table: true, batches: { with: { items: true } } }
+			})
+		]);
 
 	return {
 		stats: {
-			menus: menus.length,
-			categories: categories.length,
-			openSessions,
-			tables: tables.length
+			menus: menuCount.c,
+			categories: categoryCount.c,
+			openSessions: openCount.c,
+			tables: tableCount.c
 		},
-		recentSessions: sessions
+		recentSessions
 	};
 };

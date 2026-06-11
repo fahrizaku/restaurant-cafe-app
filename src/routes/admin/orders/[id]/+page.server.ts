@@ -1,7 +1,7 @@
 import { getDb } from '$lib/server/db';
 import { pusherClientConfig, pusherTrigger, sessionChannels } from '$lib/server/pusher';
 import { tableSessions, orderBatches } from '$lib/server/db/schema';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, sql, ne } from 'drizzle-orm';
 import { fail, error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -53,11 +53,15 @@ export const actions: Actions = {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
 		const db = getDb(platform.env.DB);
+		// Hanya sesi yang sudah dibayar yang boleh diselesaikan
 		const [updated] = await db
 			.update(tableSessions)
 			.set({ status: 'closed', closedAt: new Date() })
-			.where(eq(tableSessions.id, params.id))
+			.where(and(eq(tableSessions.id, params.id), eq(tableSessions.paymentStatus, 'paid')))
 			.returning({ tableId: tableSessions.tableId });
+		if (!updated) {
+			return fail(400, { message: 'Sesi belum dibayar — tandai lunas terlebih dahulu.' });
+		}
 		await pusherTrigger(
 			platform.env,
 			sessionChannels(params.id, updated?.tableId),
@@ -101,12 +105,93 @@ export const actions: Actions = {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
 		const db = getDb(platform.env.DB);
-		// Hanya reset status sesi; pertahankan catatan pembayaran sebelumnya
-		const [updated] = await db
+		const session = await db.query.tableSessions.findFirst({
+			where: eq(tableSessions.id, params.id)
+		});
+		if (!session) return fail(404, { message: 'Sesi tidak ditemukan' });
+		if (session.status === 'open') return { success: true };
+
+		// Cegah pelanggaran unique index: satu meja hanya boleh punya satu sesi open
+		if (session.tableId) {
+			const conflict = await db.query.tableSessions.findFirst({
+				where: and(
+					eq(tableSessions.tableId, session.tableId),
+					eq(tableSessions.status, 'open'),
+					ne(tableSessions.id, params.id)
+				)
+			});
+			if (conflict) {
+				return fail(400, {
+					message: 'Meja ini sudah punya sesi aktif lain. Tutup sesi tersebut terlebih dahulu.'
+				});
+			}
+		}
+
+		// Pertahankan catatan pembayaran sebelumnya
+		const reopen = db
 			.update(tableSessions)
-			.set({ status: 'open', closedAt: null })
-			.where(eq(tableSessions.id, params.id))
-			.returning({ tableId: tableSessions.tableId });
+			.set({
+				status: 'open',
+				closedAt: null,
+				// Total selalu = jumlah batch yang tidak dibatalkan
+				totalPrice: sql`(SELECT coalesce(sum(total_price), 0) FROM order_batches WHERE session_id = ${params.id} AND status != 'cancelled')`
+			})
+			.where(eq(tableSessions.id, params.id));
+
+		if (session.status === 'cancelled') {
+			// Pulihkan batch yang ikut dibatalkan saat sesi dibatalkan
+			await db.batch([
+				db
+					.update(orderBatches)
+					.set({ status: 'pending' })
+					.where(
+						and(eq(orderBatches.sessionId, params.id), eq(orderBatches.status, 'cancelled'))
+					),
+				reopen
+			]);
+		} else {
+			await reopen;
+		}
+
+		await pusherTrigger(
+			platform.env,
+			sessionChannels(params.id, session.tableId),
+			'session-updated',
+			{ sessionId: params.id }
+		);
+		return { success: true };
+	},
+
+	updateBatchStatus: async ({ request, params, platform }) => {
+		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
+
+		const data = await request.formData();
+		const batchId = data.get('batchId') as string;
+		const status = data.get('status') as typeof orderBatches.$inferSelect.status;
+
+		if (!batchId || !['pending', 'processing', 'done', 'cancelled'].includes(status)) {
+			return fail(400, { message: 'Data tidak valid' });
+		}
+
+		const db = getDb(platform.env.DB);
+		const batch = await db.query.orderBatches.findFirst({
+			where: and(eq(orderBatches.id, batchId), eq(orderBatches.sessionId, params.id))
+		});
+		if (!batch) return fail(404, { message: 'Batch tidak ditemukan' });
+		if (batch.status === status) return { success: true };
+
+		const [, [updated]] = await db.batch([
+			db.update(orderBatches).set({ status }).where(eq(orderBatches.id, batchId)),
+			// Total sesi selalu = jumlah batch yang tidak dibatalkan
+			db
+				.update(tableSessions)
+				.set({
+					totalPrice: sql`(SELECT coalesce(sum(total_price), 0) FROM order_batches WHERE session_id = ${params.id} AND status != 'cancelled')`
+				})
+				.where(eq(tableSessions.id, params.id))
+				.returning({ tableId: tableSessions.tableId })
+		]);
+
 		await pusherTrigger(
 			platform.env,
 			sessionChannels(params.id, updated?.tableId),

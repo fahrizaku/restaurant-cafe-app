@@ -5,7 +5,15 @@
 	import { formatRupiah } from '$lib/utils';
 	import { subscribeRealtime } from '$lib/realtime';
 	import ConfirmDialog from '$lib/components/admin/ConfirmDialog.svelte';
-	import { Circle, UtensilsCrossed, CheckCircle2, Banknote, QrCode, Landmark } from 'lucide-svelte';
+	import {
+		Circle,
+		UtensilsCrossed,
+		CheckCircle2,
+		Banknote,
+		QrCode,
+		Landmark,
+		AlertCircle
+	} from 'lucide-svelte';
 
 	const paymentOptions = [
 		{ val: 'cash', label: 'Tunai', Icon: Banknote },
@@ -13,8 +21,15 @@
 		{ val: 'transfer', label: 'Transfer Bank', Icon: Landmark }
 	];
 
-	let { data } = $props();
+	let { data, form } = $props();
 	const session = $derived(data.session);
+
+	const batchStatusLabel: Record<string, { label: string; cls: string }> = {
+		pending: { label: 'Menunggu', cls: 'bg-warning-50 text-warning-600 dark:bg-warning-500/10' },
+		processing: { label: 'Dibuat', cls: 'bg-brand-50 text-brand-500 dark:bg-brand-500/10' },
+		done: { label: 'Selesai', cls: 'bg-success-50 text-success-600 dark:bg-success-500/10' },
+		cancelled: { label: 'Batal', cls: 'bg-error-50 text-error-500 dark:bg-error-500/10' }
+	};
 	let confirmDialog = $state<{
 		title: string;
 		message?: string;
@@ -106,6 +121,15 @@
 		</div>
 	</div>
 
+	{#if form?.message}
+		<div
+			class="border-error-200 bg-error-50 text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400 flex items-center gap-3 rounded-xl border px-4 py-3"
+		>
+			<AlertCircle size={16} class="shrink-0" />
+			<p class="text-sm">{form.message}</p>
+		</div>
+	{/if}
+
 	<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 		<!-- Batches -->
 		<div class="space-y-4 lg:col-span-2">
@@ -114,17 +138,74 @@
 					class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
 				>
 					<div
-						class="flex items-center justify-between border-b border-gray-100 px-5 py-3 dark:border-gray-800"
+						class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-5 py-3 dark:border-gray-800"
 					>
 						<div class="flex items-center gap-3">
 							<span class="text-sm font-semibold text-gray-800 dark:text-white">
 								Order #{session.batches.length - i}
 							</span>
 							<span class="text-xs text-gray-400">{formatTime(batch.createdAt)}</span>
+							<span
+								class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium {batchStatusLabel[
+									batch.status
+								].cls}"
+							>
+								{batchStatusLabel[batch.status].label}
+							</span>
 						</div>
-						<span class="text-sm font-semibold text-gray-800 dark:text-white">
-							{formatRupiah(batch.totalPrice)}
-						</span>
+						<div class="flex items-center gap-2">
+							{#if session.status === 'open' || session.status === 'processing'}
+								{#if batch.status === 'pending'}
+									<form method="POST" action="?/updateBatchStatus" use:enhance={() => () => invalidateAll()}>
+										<input type="hidden" name="batchId" value={batch.id} />
+										<input type="hidden" name="status" value="processing" />
+										<button
+											type="submit"
+											class="bg-brand-500 hover:bg-brand-600 rounded-lg px-2.5 py-1 text-xs font-medium text-white"
+										>
+											Proses
+										</button>
+									</form>
+								{:else if batch.status === 'processing'}
+									<form method="POST" action="?/updateBatchStatus" use:enhance={() => () => invalidateAll()}>
+										<input type="hidden" name="batchId" value={batch.id} />
+										<input type="hidden" name="status" value="done" />
+										<button
+											type="submit"
+											class="bg-success-500 hover:bg-success-600 rounded-lg px-2.5 py-1 text-xs font-medium text-white"
+										>
+											Selesai
+										</button>
+									</form>
+								{:else if batch.status === 'cancelled'}
+									<form method="POST" action="?/updateBatchStatus" use:enhance={() => () => invalidateAll()}>
+										<input type="hidden" name="batchId" value={batch.id} />
+										<input type="hidden" name="status" value="pending" />
+										<button
+											type="submit"
+											class="border-warning-300 text-warning-600 hover:bg-warning-50 dark:border-warning-500/30 dark:text-warning-400 rounded-lg border px-2.5 py-1 text-xs font-medium"
+										>
+											Pulihkan
+										</button>
+									</form>
+								{/if}
+								{#if batch.status === 'pending' || batch.status === 'processing'}
+									<form method="POST" action="?/updateBatchStatus" use:enhance={() => () => invalidateAll()}>
+										<input type="hidden" name="batchId" value={batch.id} />
+										<input type="hidden" name="status" value="cancelled" />
+										<button
+											type="submit"
+											class="border-error-300 text-error-500 hover:bg-error-50 dark:border-error-500/30 rounded-lg border px-2.5 py-1 text-xs font-medium"
+										>
+											Batalkan
+										</button>
+									</form>
+								{/if}
+							{/if}
+							<span class="text-sm font-semibold text-gray-800 dark:text-white">
+								{formatRupiah(batch.totalPrice)}
+							</span>
+						</div>
 					</div>
 
 					<!-- Items -->

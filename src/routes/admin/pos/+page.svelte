@@ -2,9 +2,9 @@
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
 	import { formatRupiah } from '$lib/utils';
-	import { Info, ShoppingCart } from 'lucide-svelte';
+	import { Info, ShoppingCart, AlertCircle } from 'lucide-svelte';
 
-	let { data } = $props();
+	let { data, form } = $props();
 
 	type CartItem = { menuId: string; name: string; price: number; quantity: number; notes: string };
 
@@ -96,6 +96,16 @@
 			{/if}
 		</div>
 	</div>
+
+	<!-- Error Banner -->
+	{#if form?.message}
+		<div
+			class="border-error-200 bg-error-50 text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400 flex items-center gap-3 rounded-xl border px-4 py-3"
+		>
+			<AlertCircle size={16} class="shrink-0" />
+			<p class="text-sm">{form.message}</p>
+		</div>
+	{/if}
 
 	<!-- Session Info Banner -->
 	{#if activeSession}
@@ -278,10 +288,13 @@
 						method="POST"
 						action="?/order"
 						use:enhance={() => {
-							return async ({ update }) => {
+							return async ({ update, result }) => {
 								await update();
-								cart = [];
-								customerName = '';
+								// Jangan kosongkan keranjang jika order gagal
+								if (result.type === 'success' || result.type === 'redirect') {
+									cart = [];
+									customerName = '';
+								}
 							};
 						}}
 					>
