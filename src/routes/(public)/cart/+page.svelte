@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>Keranjang Pesanan — {data.table?.name || 'Cafe'}</title>
+	<title>Keranjang Pesanan — Cafe</title>
 </svelte:head>
 
 <Navbar />
@@ -20,7 +20,7 @@
 	<section class="section">
 		<div class="container">
 			<div class="cart-header">
-				<a href="/menu{data.tableId ? '?table=' + data.tableId : ''}" class="back-link">
+				<a href="/menu" class="back-link">
 					<ChevronLeft size={20} />
 					<span>Kembali ke Menu</span>
 				</a>
@@ -28,9 +28,7 @@
 					Keranjang Anda
 				</h1>
 				<p class="cart-subtitle">
-					{#if data.table}
-						Memesan untuk <strong>{data.table.name}</strong>
-					{:else if data.activeSession?.customerName}
+					{#if data.activeSession?.customerName}
 						Atas nama: <strong>{data.activeSession.customerName}</strong>
 					{:else}
 						Silakan periksa pesanan Anda sebelum dikirim.
@@ -48,9 +46,7 @@
 						<p class="empty-cart__description">
 							Anda belum menambahkan menu apapun ke dalam keranjang.
 						</p>
-						<a href="/menu{data.tableId ? '?table=' + data.tableId : ''}" class="button"
-							>Lihat Menu</a
-						>
+						<a href="/menu" class="button">Lihat Menu</a>
 					</div>
 				{:else}
 					<div class="cart-items">
@@ -118,9 +114,7 @@
 								</p>
 							</div>
 							<a
-								href={data.tableId
-									? `/table/${data.tableId}`
-									: `/order/status/${data.activeSession.id}`}
+								href={`/order/status/${data.activeSession.id}`}
 								class="button w-full unpaid-notice__cta"
 							>
 								Bayar Tagihan Sekarang
@@ -146,21 +140,17 @@
 							}}
 							class="order-form"
 						>
-							<input type="hidden" name="tableId" value={data.tableId || ''} />
-
-							{#if !data.tableId}
-								<div class="input-group">
-									<label for="customerName" class="input-label">Nama / Info Meja</label>
-									<input
-										type="text"
-										name="customerName"
-										id="customerName"
-										placeholder="Contoh: Budi atau Meja Pojok"
-										required
-										class="text-input"
-									/>
-								</div>
-							{/if}
+							<div class="input-group">
+								<label for="customerName" class="input-label">Nama / No. Meja</label>
+								<input
+									type="text"
+									name="customerName"
+									id="customerName"
+									placeholder="Contoh: Budi atau Meja 5"
+									required
+									class="text-input"
+								/>
+							</div>
 
 							<input
 								type="hidden"
@@ -191,7 +181,7 @@
 	</section>
 </main>
 
-<MobileNav activeSessionId={data.activeSession?.id} tableId={data.tableId} />
+<MobileNav activeSessionId={data.activeSession?.id} />
 
 <footer class="footer pb-mobile">
 	<div class="footer__container container">

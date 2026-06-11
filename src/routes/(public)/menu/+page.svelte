@@ -48,7 +48,7 @@
 </script>
 
 <svelte:head>
-	<title>Menu — {data.table?.name || 'Restoran'}</title>
+	<title>Menu — Restoran</title>
 </svelte:head>
 
 <Navbar />
@@ -57,19 +57,14 @@
 	<!--==================== MENU TITLE ====================-->
 	<section class="section" id="menu-top" style="padding-bottom: 0;">
 		<div class="container">
-			{#if data.table}
-				<p style="text-align: center; margin-bottom: 1rem;">Meja: {data.table.name}</p>
-			{:else if data.activeSession?.customerName}
+			{#if data.activeSession?.customerName}
 				<p style="text-align: center; margin-bottom: 1rem;">
 					Pesanan: {data.activeSession.customerName}
 				</p>
 			{/if}
 
 			{#if data.activeSession}
-				<a
-					href={data.table ? `/table/${data.table.id}` : `/order/status/${data.activeSession.id}`}
-					class="bill-banner"
-				>
+				<a href={`/order/status/${data.activeSession.id}`} class="bill-banner">
 					<i class="ri-error-warning-line"></i>
 					<span
 						>Tagihan belum dibayar: <strong>{formatRupiah(data.activeSession.totalPrice)}</strong>
@@ -168,7 +163,7 @@
 	{/if}
 </main>
 
-<MobileNav activeSessionId={data.activeSession?.id} tableId={data.table?.id} />
+<MobileNav activeSessionId={data.activeSession?.id} />
 
 <footer class="footer pb-mobile">
 	<div class="footer__container container">

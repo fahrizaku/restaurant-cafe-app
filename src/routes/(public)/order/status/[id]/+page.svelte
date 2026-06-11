@@ -5,8 +5,8 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import PaymentOptions from '$lib/components/PaymentOptions.svelte';
+	import { enhance } from '$app/forms';
 	import { formatRupiah } from '$lib/utils';
-	import { cart } from '$lib/stores/cart.svelte';
 	import { subscribeRealtime } from '$lib/realtime';
 	import { initNotificationSound, playNotificationSound } from '$lib/notification-sound';
 
@@ -33,6 +33,9 @@
 		done: 'status--done',
 		cancelled: 'status--cancelled'
 	};
+
+	let confirmCancel = $state(false);
+	let cancelling = $state(false);
 
 	let toastText = $state<string | null>(null);
 	let toastTimer: ReturnType<typeof setTimeout> | null = null;
@@ -135,6 +138,10 @@
 						{:else if session.status === 'closed'}
 							<span class="badge badge--paid">
 								<i class="ri-checkbox-circle-fill"></i> Selesai
+							</span>
+						{:else if session.status === 'cancelled'}
+							<span class="badge badge--cancelled-session">
+								<i class="ri-close-circle-fill"></i> Dibatalkan
 							</span>
 						{/if}
 
@@ -240,13 +247,53 @@
 						<i class="ri-error-warning-line"></i>
 						<span>Selesaikan pembayaran di atas agar pesanan diproses.</span>
 					</div>
+					{#if session.paymentStatus === 'unpaid'}
+						{#if !confirmCancel}
+							<button class="cancel-link" onclick={() => (confirmCancel = true)}>
+								Batalkan pesanan ini
+							</button>
+						{:else}
+							<div class="cancel-confirm" role="alert">
+								<p>Yakin membatalkan pesanan sebesar {formatRupiah(session.totalPrice)}?</p>
+								<div class="cancel-confirm__actions">
+									<form
+										method="POST"
+										action="?/cancelOrder"
+										use:enhance={() => {
+											cancelling = true;
+											return async ({ update }) => {
+												await update();
+												cancelling = false;
+												confirmCancel = false;
+											};
+										}}
+									>
+										<button type="submit" disabled={cancelling} class="cancel-confirm__yes">
+											{cancelling ? 'Membatalkan...' : 'Ya, batalkan'}
+										</button>
+									</form>
+									<button class="cancel-confirm__no" onclick={() => (confirmCancel = false)}>
+										Tidak
+									</button>
+								</div>
+							</div>
+						{/if}
+					{/if}
 				{:else if session.status === 'processing'}
 					<div class="bill-processing-hint">
 						<i class="ri-restaurant-2-line"></i>
 						<span>Pesanan Anda sedang disiapkan. Mohon tunggu.</span>
 					</div>
-					<a href="/menu{session.tableId ? '?table=' + session.tableId : ''}" class="button">
+					<a href="/menu" class="button">
 						<i class="ri-add-line"></i> Pesan Lagi
+					</a>
+				{:else if session.status === 'cancelled'}
+					<div class="bill-processing-hint">
+						<i class="ri-close-circle-line"></i>
+						<span>Pesanan ini sudah dibatalkan.</span>
+					</div>
+					<a href="/menu" class="button">
+						<i class="ri-add-line"></i> Pesan Baru
 					</a>
 				{/if}
 				<p class="bill-refresh-hint">
@@ -260,7 +307,7 @@
 	</section>
 </main>
 
-<MobileNav activeSessionId={session.id} tableId={session.tableId} />
+<MobileNav activeSessionId={session.id} />
 
 <footer class="footer pb-mobile">
 	<div class="footer__container container">
@@ -535,6 +582,59 @@
 			max-width: 480px;
 			margin-inline: auto;
 		}
+	}
+
+	.badge--cancelled-session {
+		background-color: hsla(0, 0%, 100%, 0.25);
+		color: var(--white-color);
+	}
+
+	.cancel-link {
+		background: none;
+		color: var(--text-color-light);
+		font-size: var(--smaller-font-size);
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.cancel-confirm {
+		background-color: hsla(0, 80%, 55%, 0.08);
+		border: 1px solid hsla(0, 80%, 55%, 0.25);
+		border-radius: 0.75rem;
+		padding: 1rem;
+		width: 100%;
+		text-align: center;
+		font-size: var(--small-font-size);
+		color: var(--title-color);
+	}
+
+	.cancel-confirm__actions {
+		display: flex;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+	}
+
+	.cancel-confirm__yes {
+		background-color: hsl(0, 65%, 50%);
+		color: white;
+		padding: 0.5rem 1.25rem;
+		border-radius: 0.5rem;
+		font-weight: var(--font-medium);
+		cursor: pointer;
+	}
+
+	.cancel-confirm__yes:disabled {
+		opacity: 0.6;
+	}
+
+	.cancel-confirm__no {
+		background-color: var(--container-color);
+		color: var(--title-color);
+		padding: 0.5rem 1.25rem;
+		border-radius: 0.5rem;
+		font-weight: var(--font-medium);
+		cursor: pointer;
 	}
 
 	.order-toast {

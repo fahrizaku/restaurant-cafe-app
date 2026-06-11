@@ -3,12 +3,10 @@
 	import { page } from '$app/state';
 
 	interface Props {
-		onCartClick?: () => void;
 		activeSessionId?: string | null;
-		tableId?: string | null;
 	}
 
-	let { activeSessionId, tableId }: Props = $props();
+	let { activeSessionId }: Props = $props();
 
 	const isMenuPage = $derived(page.url.pathname === '/menu');
 	const isCartPage = $derived(page.url.pathname === '/cart');
@@ -20,20 +18,12 @@
 </script>
 
 <div class="mobile-nav">
-	<a
-		href="/menu{tableId ? '?table=' + tableId : ''}"
-		class="mobile-nav__item"
-		class:active={isMenuPage}
-	>
+	<a href="/menu" class="mobile-nav__item" class:active={isMenuPage}>
 		<i class="ri-restaurant-line"></i>
 		<span>Menu</span>
 	</a>
 
-	<a
-		href="/cart{tableId ? '?table=' + tableId : ''}"
-		class="mobile-nav__item"
-		class:active={isCartPage}
-	>
+	<a href="/cart" class="mobile-nav__item" class:active={isCartPage}>
 		<div class="mobile-nav__icon-wrapper">
 			<i class="ri-shopping-cart-2-line"></i>
 			{#if cart.count > 0}
@@ -44,11 +34,7 @@
 	</a>
 
 	<a
-		href={tableId
-			? `/table/${tableId}`
-			: activeSessionId
-				? `/order/status/${activeSessionId}`
-				: '/bill'}
+		href={activeSessionId ? `/order/status/${activeSessionId}` : '/bill'}
 		class="mobile-nav__item"
 		class:active={isStatusPage}
 	>
