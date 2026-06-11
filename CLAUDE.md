@@ -50,7 +50,7 @@ Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke
 
 ## Halaman
 
-**Publik:** `/` landing · `/menu?table=T-01` order · `/table/T-01` status bill
+**Publik:** `/` landing · `/menu?table=T-01` order · `/table/T-01` status bill · `/bill` resolver tagihan (redirect via cookie meja/sesi, atau empty state)
 
 **Admin:** `/admin` dashboard · `/admin/orders` daftar sesi · `/admin/orders/[id]` detail · `/admin/menus` · `/admin/categories` · `/admin/tables` · `/admin/pos` POS kasir · `/admin/settings` pengaturan (rekening transfer)
 

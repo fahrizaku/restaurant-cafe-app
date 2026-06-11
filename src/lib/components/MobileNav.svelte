@@ -13,7 +13,9 @@
 	const isMenuPage = $derived(page.url.pathname === '/menu');
 	const isCartPage = $derived(page.url.pathname === '/cart');
 	const isStatusPage = $derived(
-		page.url.pathname.startsWith('/order/status') || page.url.pathname.startsWith('/table/')
+		page.url.pathname.startsWith('/order/status') ||
+			page.url.pathname.startsWith('/table/') ||
+			page.url.pathname === '/bill'
 	);
 </script>
 
@@ -41,21 +43,18 @@
 		<span>Keranjang</span>
 	</a>
 
-	{#if activeSessionId || tableId}
-		<a
-			href={tableId ? `/table/${tableId}` : `/order/status/${activeSessionId}`}
-			class="mobile-nav__item"
-			class:active={isStatusPage}
-		>
-			<i class="ri-receipt-line"></i>
-			<span>Tagihan</span>
-		</a>
-	{:else}
-		<a href="/#contact" class="mobile-nav__item">
-			<i class="ri-information-line"></i>
-			<span>Info</span>
-		</a>
-	{/if}
+	<a
+		href={tableId
+			? `/table/${tableId}`
+			: activeSessionId
+				? `/order/status/${activeSessionId}`
+				: '/bill'}
+		class="mobile-nav__item"
+		class:active={isStatusPage}
+	>
+		<i class="ri-receipt-line"></i>
+		<span>Tagihan</span>
+	</a>
 </div>
 
 <style>
