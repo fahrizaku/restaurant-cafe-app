@@ -10,6 +10,7 @@ declare global {
 			env: {
 				DB: D1Database;
 				BUCKET: R2Bucket;
+				ADMIN_PASSWORD?: string;
 				// Pusher (opsional — fitur realtime mati jika tidak diset)
 				PUSHER_APP_ID?: string;
 				PUSHER_KEY?: string;

@@ -1,5 +1,9 @@
 # Salin ke .dev.vars untuk pengembangan lokal.
 # Untuk produksi: npx wrangler pages secret put <NAMA>
+
+# Password akses halaman admin (opsional — jika tidak diset, admin terbuka tanpa password)
+ADMIN_PASSWORD=""
+
 PUSHER_APP_ID=""
 PUSHER_KEY=""
 PUSHER_SECRET=""

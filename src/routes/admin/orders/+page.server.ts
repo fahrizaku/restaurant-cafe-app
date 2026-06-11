@@ -1,7 +1,7 @@
 import { getDb } from '$lib/server/db';
 import { pusherClientConfig, pusherTrigger, sessionChannels } from '$lib/server/pusher';
-import { tableSessions } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { tableSessions, orderBatches } from '$lib/server/db/schema';
+import { eq, and, inArray } from 'drizzle-orm';
 import { fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -81,6 +81,13 @@ export const actions: Actions = {
 			.set({ status: 'cancelled', closedAt: new Date() })
 			.where(eq(tableSessions.id, id))
 			.returning({ tableId: tableSessions.tableId });
+
+		// Batalkan semua batch yang belum selesai dalam sesi ini
+		await db
+			.update(orderBatches)
+			.set({ status: 'cancelled' })
+			.where(and(eq(orderBatches.sessionId, id), inArray(orderBatches.status, ['pending', 'processing'])));
+
 		await pusherTrigger(platform.env, sessionChannels(id, updated?.tableId), 'session-updated', {
 			sessionId: id
 		});

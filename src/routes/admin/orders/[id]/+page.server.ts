@@ -1,7 +1,7 @@
 import { getDb } from '$lib/server/db';
 import { pusherClientConfig, pusherTrigger, sessionChannels } from '$lib/server/pusher';
-import { tableSessions } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+import { tableSessions, orderBatches } from '$lib/server/db/schema';
+import { eq, and, inArray } from 'drizzle-orm';
 import { fail, error } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
@@ -76,6 +76,18 @@ export const actions: Actions = {
 			.set({ status: 'cancelled', closedAt: new Date() })
 			.where(eq(tableSessions.id, params.id))
 			.returning({ tableId: tableSessions.tableId });
+
+		// Batalkan semua batch yang belum selesai dalam sesi ini
+		await db
+			.update(orderBatches)
+			.set({ status: 'cancelled' })
+			.where(
+				and(
+					eq(orderBatches.sessionId, params.id),
+					inArray(orderBatches.status, ['pending', 'processing'])
+				)
+			);
+
 		await pusherTrigger(
 			platform.env,
 			sessionChannels(params.id, updated?.tableId),
@@ -89,9 +101,10 @@ export const actions: Actions = {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 
 		const db = getDb(platform.env.DB);
+		// Hanya reset status sesi; pertahankan catatan pembayaran sebelumnya
 		const [updated] = await db
 			.update(tableSessions)
-			.set({ status: 'open', closedAt: null, paymentStatus: 'unpaid', paymentMethod: null })
+			.set({ status: 'open', closedAt: null })
 			.where(eq(tableSessions.id, params.id))
 			.returning({ tableId: tableSessions.tableId });
 		await pusherTrigger(
