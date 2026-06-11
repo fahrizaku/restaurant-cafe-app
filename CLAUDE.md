@@ -31,6 +31,8 @@ Satu kunjungan meja = satu sesi. Satu klik "Place Order" = satu batch. Semua bat
 
 Semua jalur order (menu publik, cart, POS kasir) lewat `processOrder()` di `src/lib/server/order.ts` — harga server-side, validasi quantity/tableId, atomic `db.batch`, dukungan `notes`. POS memanggil dengan `cookies = null` (takeaway selalu sesi baru). Partial unique index: satu sesi `open` per meja. `/admin/orders` paginated 20/halaman. Cart publik persist ke `localStorage` (key `cafe-cart`).
 
+Konteks meja customer diingat di cookie `table_id` (6 jam) via `src/lib/server/table-context.ts` — URL `?table=` menang atas cookie; di-set oleh load `/menu`, `/cart`, `/table/[id]`. Tanpa ini, tab "Tagihan" hilang saat berpindah halaman tanpa query param.
+
 ### Realtime (Pusher)
 
 Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke polling 10 detik).

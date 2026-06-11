@@ -3,10 +3,11 @@ import { tableSessions } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { processOrder } from '$lib/server/order';
+import { rememberTable, resolveTableId } from '$lib/server/table-context';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ url, platform, cookies }) => {
-	const tableId = url.searchParams.get('table');
+	const tableId = resolveTableId(url, cookies);
 	const sessionId = cookies.get('session_id');
 
 	if (!platform?.env.DB) error(500, 'Service unavailable');
@@ -25,10 +26,12 @@ export const load: PageServerLoad = async ({ url, platform, cookies }) => {
 		})
 	]);
 
+	if (table) rememberTable(cookies, table.id);
+
 	let activeSession = null;
-	if (tableId) {
+	if (table) {
 		activeSession = await db.query.tableSessions.findFirst({
-			where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
+			where: and(eq(tableSessions.tableId, table.id), eq(tableSessions.status, 'open'))
 		});
 	} else if (sessionId) {
 		activeSession = await db.query.tableSessions.findFirst({
@@ -39,7 +42,7 @@ export const load: PageServerLoad = async ({ url, platform, cookies }) => {
 	const categoriesWithMenus = categories.filter((c) => c.menus.length > 0);
 
 	return {
-		noTable: !tableId,
+		noTable: !table,
 		table,
 		categories: categoriesWithMenus,
 		activeSession: activeSession ?? null

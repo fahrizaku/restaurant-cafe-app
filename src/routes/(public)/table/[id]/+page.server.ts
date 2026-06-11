@@ -3,9 +3,10 @@ import { pusherClientConfig } from '$lib/server/pusher';
 import { tableSessions } from '$lib/server/db/schema';
 import { eq, and, or, desc } from 'drizzle-orm';
 import { error } from '@sveltejs/kit';
+import { rememberTable } from '$lib/server/table-context';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, platform }) => {
+export const load: PageServerLoad = async ({ params, platform, cookies }) => {
 	if (!platform?.env.DB) error(500, 'Service unavailable');
 
 	const db = getDb(platform.env.DB);
@@ -15,6 +16,9 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 	});
 
 	if (!table) error(404, 'Table not found');
+
+	// Ingat meja agar konteks tidak hilang saat kembali ke /menu lewat navbar
+	rememberTable(cookies, table.id);
 
 	// Ambil sesi aktif beserta semua batch dan item-nya
 	const session = await db.query.tableSessions.findFirst({

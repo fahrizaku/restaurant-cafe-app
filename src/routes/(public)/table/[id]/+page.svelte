@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import MobileNav from '$lib/components/MobileNav.svelte';
 	import { formatRupiah } from '$lib/utils';
 	import { subscribeRealtime } from '$lib/realtime';
 
@@ -53,7 +54,7 @@
 
 <Navbar />
 
-<main class="main">
+<main class="main has-mobile-nav">
 	<section class="section">
 		<div class="container">
 			{#if !session}
@@ -188,13 +189,24 @@
 	</section>
 </main>
 
-<footer class="footer">
+<MobileNav activeSessionId={session?.id} tableId={table.id} />
+
+<footer class="footer pb-mobile">
 	<div class="footer__container container">
 		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
 	</div>
 </footer>
 
 <style>
+	@media screen and (max-width: 1150px) {
+		.pb-mobile {
+			padding-bottom: 6rem;
+		}
+		.main {
+			padding-bottom: 4rem;
+		}
+	}
+
 	/* Empty state */
 	.empty-state {
 		display: flex;

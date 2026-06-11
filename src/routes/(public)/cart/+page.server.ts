@@ -3,10 +3,11 @@ import { tableSessions } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { processOrder } from '$lib/server/order';
+import { rememberTable, resolveTableId } from '$lib/server/table-context';
 import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ url, platform, cookies }) => {
-	const tableId = url.searchParams.get('table');
+	const tableId = resolveTableId(url, cookies);
 	const sessionId = cookies.get('session_id');
 
 	if (!platform?.env.DB) error(500, 'Service unavailable');
@@ -28,7 +29,9 @@ export const load: PageServerLoad = async ({ url, platform, cookies }) => {
 		});
 	}
 
-	return { tableId, table, activeSession };
+	if (table) rememberTable(cookies, table.id);
+
+	return { tableId: table?.id ?? null, table, activeSession };
 };
 
 export const actions: Actions = {
