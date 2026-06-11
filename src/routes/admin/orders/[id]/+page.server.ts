@@ -197,6 +197,21 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
+	saveNotes: async ({ request, params, platform }) => {
+		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
+
+		const data = await request.formData();
+		const raw = (data.get('staffNotes') as string ?? '').trim();
+		const staffNotes = raw.slice(0, 500) || null;
+
+		const db = getDb(platform.env.DB);
+		await db
+			.update(tableSessions)
+			.set({ staffNotes })
+			.where(eq(tableSessions.id, params.id));
+		return { success: true, savedNotes: true };
+	},
+
 	updateBatchStatus: async ({ request, params, platform }) => {
 		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
 

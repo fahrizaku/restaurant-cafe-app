@@ -23,6 +23,10 @@
 
 	let { data, form } = $props();
 	const session = $derived(data.session);
+	let notesValue = $state('');
+	$effect(() => { notesValue = data.session.staffNotes ?? ''; });
+	let notesSaving = $state(false);
+	let notesSaved = $state(false);
 
 	const batchStatusLabel: Record<string, { label: string; cls: string }> = {
 		pending: { label: 'Menunggu', cls: 'bg-warning-50 text-warning-600 dark:bg-warning-500/10' },
@@ -421,6 +425,47 @@
 					</form>
 				</div>
 			{/if}
+
+			<!-- Catatan Kasir -->
+			<div
+				class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900"
+			>
+				<h2 class="mb-3 text-base font-semibold text-gray-800 dark:text-white">Catatan Kasir</h2>
+				<form
+					method="POST"
+					action="?/saveNotes"
+					use:enhance={() => {
+						notesSaving = true;
+						notesSaved = false;
+						return async ({ update }) => {
+							await update({ reset: false });
+							notesSaving = false;
+							notesSaved = true;
+							setTimeout(() => (notesSaved = false), 2500);
+						};
+					}}
+					class="space-y-2"
+				>
+					<textarea
+						name="staffNotes"
+						bind:value={notesValue}
+						rows="3"
+						maxlength="500"
+						placeholder="Mis: alergi kacang, minta ekstra sambal…"
+						class="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-400 focus:bg-white focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500"
+					></textarea>
+					<div class="flex items-center justify-between">
+						<span class="text-xs text-gray-400">{notesValue.length}/500</span>
+						<button
+							type="submit"
+							disabled={notesSaving}
+							class="rounded-lg bg-gray-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-60 dark:bg-gray-700 dark:hover:bg-gray-600"
+						>
+							{notesSaved ? 'Tersimpan ✓' : notesSaving ? 'Menyimpan…' : 'Simpan'}
+						</button>
+					</div>
+				</form>
+			</div>
 
 			<!-- Batalkan Sesi -->
 			{#if session.status === 'open' || session.status === 'processing'}

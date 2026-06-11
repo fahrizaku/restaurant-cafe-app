@@ -5,6 +5,7 @@
 
 	let { data } = $props();
 	let deletingId = $state<string | null>(null);
+	let togglingId = $state<string | null>(null);
 	let confirmDialog = $state<{ title: string; message?: string; onConfirm: () => void } | null>(
 		null
 	);
@@ -90,6 +91,30 @@
 								</td>
 								<td class="px-5 py-3">
 									<div class="flex items-center justify-end gap-2">
+										<form
+											method="POST"
+											action="?/toggleAvailable"
+											use:enhance={() => {
+												togglingId = menu.id;
+												return async ({ update }) => {
+													await update();
+													togglingId = null;
+												};
+											}}
+										>
+											<input type="hidden" name="id" value={menu.id} />
+											<button
+												type="submit"
+												disabled={togglingId === menu.id}
+												aria-label="{menu.isAvailable ? 'Tandai habis' : 'Jual lagi'} {menu.name}"
+												class="h-8 rounded-lg border px-2.5 text-xs font-medium transition-colors
+													{menu.isAvailable
+													? 'border-gray-200 text-gray-500 hover:border-warning-300 hover:bg-warning-50 hover:text-warning-600 dark:border-gray-800 dark:text-gray-400'
+													: 'border-success-300 bg-success-50 text-success-600 hover:bg-success-100 dark:border-success-500/30 dark:bg-success-500/10'}"
+											>
+												{menu.isAvailable ? 'Habiskan' : 'Jual Lagi'}
+											</button>
+										</form>
 										<a
 											href="/admin/menus/{menu.id}"
 											class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-100 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/5"

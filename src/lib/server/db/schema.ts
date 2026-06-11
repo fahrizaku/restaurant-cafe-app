@@ -71,6 +71,7 @@ export const tableSessions = sqliteTable(
 		// Key objek R2 bukti transfer (payment-proofs/...)
 		paymentProof: text('payment_proof'),
 		totalPrice: real('total_price').notNull().default(0),
+		staffNotes: text('staff_notes'),
 		openedAt: integer('opened_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 		closedAt: integer('closed_at', { mode: 'timestamp' })
 	},

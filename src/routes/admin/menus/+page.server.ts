@@ -27,5 +27,20 @@ export const actions: Actions = {
 		const db = getDb(platform.env.DB);
 		await db.delete(menus).where(eq(menus.id, id));
 		return { success: true };
+	},
+
+	toggleAvailable: async ({ request, platform }) => {
+		if (!platform?.env.DB) return fail(500, { message: 'DB not available' });
+
+		const data = await request.formData();
+		const id = data.get('id') as string;
+		if (!id) return fail(400, { message: 'ID required' });
+
+		const db = getDb(platform.env.DB);
+		const menu = await db.query.menus.findFirst({ where: eq(menus.id, id) });
+		if (!menu) return fail(404, { message: 'Menu tidak ditemukan' });
+
+		await db.update(menus).set({ isAvailable: !menu.isAvailable }).where(eq(menus.id, id));
+		return { success: true };
 	}
 };
