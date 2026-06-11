@@ -52,13 +52,13 @@ Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke
 
 **Publik:** `/` landing · `/menu?table=T-01` order · `/table/T-01` status bill · `/bill` resolver tagihan (redirect via cookie meja/sesi, atau empty state)
 
-**Admin:** `/admin` dashboard · `/admin/orders` daftar sesi · `/admin/orders/[id]` detail · `/admin/menus` · `/admin/categories` · `/admin/tables` · `/admin/pos` POS kasir · `/admin/settings` pengaturan (rekening transfer)
+**Admin:** `/admin` dashboard · `/admin/orders` daftar sesi · `/admin/orders/[id]` detail · `/admin/menus` · `/admin/categories` · `/admin/tables` · `/admin/pos` POS kasir · `/admin/settings` pengaturan (rekening transfer) · `/admin/reports` laporan harian (pendapatan per hari + item terlaris, filter 7/30/90 hari)
 
 ## Status Fitur
 
-Selesai: manajemen menu/kategori/meja, QR order, admin orders, dashboard, POS kasir.
+Selesai: manajemen menu/kategori/meja, QR order, admin orders, dashboard, POS kasir, laporan harian.
 
-Belum: laporan harian/bulanan, print struk, multi-user/role.
+Belum: laporan bulanan, print struk, multi-user/role.
 
 ## Sebelum Commit
 
