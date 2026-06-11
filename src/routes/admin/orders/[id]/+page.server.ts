@@ -242,12 +242,17 @@ export const actions: Actions = {
 				.returning({ tableId: tableSessions.tableId })
 		]);
 
-		await pusherTrigger(
-			platform.env,
-			sessionChannels(params.id, updated?.tableId),
-			'session-updated',
-			{ sessionId: params.id }
-		);
+		const channels = sessionChannels(params.id, updated?.tableId);
+		await pusherTrigger(platform.env, channels, 'session-updated', { sessionId: params.id });
+
+		// Notifikasi khusus ke customer saat batch mulai diproses
+		if (status === 'processing') {
+			await pusherTrigger(platform.env, channels, 'order-confirmed', {
+				sessionId: params.id,
+				batchId
+			});
+		}
+
 		return { success: true };
 	}
 };

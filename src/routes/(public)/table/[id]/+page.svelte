@@ -32,13 +32,28 @@
 		cancelled: 'status--cancelled'
 	};
 
+	let showConfirmToast = $state(false);
+	let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
 	// Realtime via Pusher; fallback polling 10 detik jika belum dikonfigurasi
 	onMount(() => {
 		if (data.pusher) {
-			return subscribeRealtime(data.pusher, `table-${data.table.id}`, () => invalidateAll());
+			return subscribeRealtime(data.pusher, `table-${data.table.id}`, (event) => {
+				if (event === 'order-confirmed') {
+					showConfirmToast = true;
+					if (toastTimer) clearTimeout(toastTimer);
+					toastTimer = setTimeout(() => {
+						showConfirmToast = false;
+					}, 4000);
+				}
+				invalidateAll();
+			});
 		}
 		const interval = setInterval(() => invalidateAll(), 10000);
-		return () => clearInterval(interval);
+		return () => {
+			clearInterval(interval);
+			if (toastTimer) clearTimeout(toastTimer);
+		};
 	});
 
 	function formatTime(date: Date | null) {
@@ -54,6 +69,13 @@
 </svelte:head>
 
 <Navbar />
+
+{#if showConfirmToast}
+	<div class="order-toast" role="status" aria-live="polite">
+		<i class="ri-restaurant-2-line"></i>
+		<span>Pesanan diterima! Dapur sedang menyiapkan.</span>
+	</div>
+{/if}
 
 <main class="main has-mobile-nav">
 	<section class="section">
@@ -539,6 +561,41 @@
 		.container {
 			max-width: 480px;
 			margin-inline: auto;
+		}
+	}
+
+	.order-toast {
+		position: fixed;
+		top: 5rem;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 1000;
+		display: flex;
+		align-items: center;
+		column-gap: 0.5rem;
+		padding: 0.875rem 1.25rem;
+		border-radius: 1rem;
+		background-color: hsl(220, 70%, 50%);
+		color: white;
+		font-size: var(--small-font-size);
+		font-weight: var(--font-medium);
+		box-shadow: 0 8px 24px hsla(220, 70%, 30%, 0.35);
+		animation: toast-in 0.3s ease;
+		white-space: nowrap;
+	}
+
+	.order-toast i {
+		font-size: 1.1rem;
+	}
+
+	@keyframes toast-in {
+		from {
+			opacity: 0;
+			transform: translateX(-50%) translateY(-0.5rem);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(-50%) translateY(0);
 		}
 	}
 </style>
