@@ -20,9 +20,8 @@
 - [x] **Race condition total sesi** — ganti read-modify-write menjadi `sql\`total_price + ?\``.
   - File: `src/lib/server/order.ts`
 
-- [ ] **Race condition pembuatan sesi** — tambah unique constraint "satu sesi open per meja" di skema.
-  - File: `src/lib/server/db/schema.ts` + migrasi baru
-  - *Catatan: perlu migrasi DB, belum dikerjakan.*
+- [x] **Race condition pembuatan sesi** — partial unique index `table_sessions_open_per_table` pada `(table_id) WHERE status = 'open'`. Insert kedua yang konflik di-retry dengan re-query sesi yang sudah ada.
+  - File: `src/lib/server/db/schema.ts`, `drizzle/0001_open_session_per_table.sql`, `src/lib/server/order.ts`
 
 ## Konsistensi Logika
 
@@ -40,8 +39,7 @@
 - [x] **Validasi `tableId`** — verifikasi meja ada di DB sebelum membuat sesi; kembalikan error ramah jika tidak ada.
   - File: `src/lib/server/order.ts`
 
-## Catatan Sisa
+## Catatan
 
-- Race condition pembuatan sesi (dua request bersamaan ke meja tanpa sesi aktif) masih ada.
-  Solusinya butuh unique partial index di skema D1 + migrasi.
-- Channel Pusher masih publik; pertimbangkan private channel jika payload event diperkaya.
+- Channel Pusher masih publik; pertimbangkan private channel jika payload event diperkaya di masa depan.
+- Semua item selesai dikerjakan.

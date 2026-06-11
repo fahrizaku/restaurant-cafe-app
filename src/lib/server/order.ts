@@ -78,11 +78,21 @@ export async function processOrder(
 			return fail(400, { message: 'Nama atau Nomor Meja diperlukan' });
 		}
 
-		const [newSession] = await db
-			.insert(tableSessions)
-			.values({ tableId: tableId || null, customerName: customerName || null, totalPrice: 0 })
-			.returning();
-		session = newSession;
+		try {
+			const [newSession] = await db
+				.insert(tableSessions)
+				.values({ tableId: tableId || null, customerName: customerName || null, totalPrice: 0 })
+				.returning();
+			session = newSession;
+		} catch {
+			// Unique constraint: request lain sudah buat sesi untuk meja ini duluan
+			if (tableId) {
+				session = await db.query.tableSessions.findFirst({
+					where: and(eq(tableSessions.tableId, tableId), eq(tableSessions.status, 'open'))
+				});
+			}
+			if (!session) return fail(500, { message: 'Gagal membuat sesi order' });
+		}
 
 		if (!tableId) {
 			cookies.set('session_id', session.id, { path: '/', maxAge: 60 * 60 * 12 });

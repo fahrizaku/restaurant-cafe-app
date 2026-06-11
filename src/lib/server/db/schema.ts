@@ -1,5 +1,5 @@
-import { integer, sqliteTable, text, real } from 'drizzle-orm/sqlite-core';
-import { relations } from 'drizzle-orm';
+import { integer, sqliteTable, text, real, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { relations, sql } from 'drizzle-orm';
 
 export const categories = sqliteTable('categories', {
 	id: text('id')
@@ -46,23 +46,32 @@ export const tablesRelations = relations(tables, ({ many }) => ({
 }));
 
 // Satu sesi per kunjungan meja. Bisa ada banyak batch order dalam satu sesi.
-export const tableSessions = sqliteTable('table_sessions', {
-	id: text('id')
-		.primaryKey()
-		.$defaultFn(() => crypto.randomUUID()),
-	tableId: text('table_id').references(() => tables.id),
-	customerName: text('customer_name'),
-	status: text('status', { enum: ['open', 'processing', 'closed', 'cancelled'] })
-		.notNull()
-		.default('open'),
-	paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] })
-		.notNull()
-		.default('unpaid'),
-	paymentMethod: text('payment_method', { enum: ['cash', 'qris', 'transfer'] }),
-	totalPrice: real('total_price').notNull().default(0),
-	openedAt: integer('opened_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
-	closedAt: integer('closed_at', { mode: 'timestamp' })
-});
+export const tableSessions = sqliteTable(
+	'table_sessions',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		tableId: text('table_id').references(() => tables.id),
+		customerName: text('customer_name'),
+		status: text('status', { enum: ['open', 'processing', 'closed', 'cancelled'] })
+			.notNull()
+			.default('open'),
+		paymentStatus: text('payment_status', { enum: ['unpaid', 'paid'] })
+			.notNull()
+			.default('unpaid'),
+		paymentMethod: text('payment_method', { enum: ['cash', 'qris', 'transfer'] }),
+		totalPrice: real('total_price').notNull().default(0),
+		openedAt: integer('opened_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+		closedAt: integer('closed_at', { mode: 'timestamp' })
+	},
+	(t) => [
+		// Hanya satu sesi berstatus 'open' per meja (cegah race condition)
+		uniqueIndex('table_sessions_open_per_table')
+			.on(t.tableId)
+			.where(sql`${t.status} = 'open' AND ${t.tableId} IS NOT NULL`)
+	]
+);
 
 export const tableSessionsRelations = relations(tableSessions, ({ one, many }) => ({
 	table: one(tables, {

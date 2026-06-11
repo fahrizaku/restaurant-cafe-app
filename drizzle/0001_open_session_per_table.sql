@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `table_sessions_open_per_table` ON `table_sessions` (`table_id`) WHERE "table_sessions"."status" = 'open' AND "table_sessions"."table_id" IS NOT NULL;
