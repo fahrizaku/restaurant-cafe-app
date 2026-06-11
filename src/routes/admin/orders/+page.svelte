@@ -66,30 +66,15 @@
 		return `/admin/orders${qs ? '?' + qs : ''}`;
 	}
 
-	// Bunyi singkat saat ada order baru (best-effort; bisa diblokir autoplay policy)
-	function playNewOrderSound() {
-		try {
-			const ctx = new AudioContext();
-			const osc = ctx.createOscillator();
-			const gain = ctx.createGain();
-			osc.connect(gain);
-			gain.connect(ctx.destination);
-			osc.frequency.value = 880;
-			gain.gain.setValueAtTime(0.2, ctx.currentTime);
-			gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-			osc.start();
-			osc.stop(ctx.currentTime + 0.5);
-		} catch {
-			// abaikan
+	// Suara notifikasi dimainkan terpusat di Header (semua halaman admin).
+	// Di sini cukup refresh data; fallback polling jika Pusher tidak dikonfigurasi.
+	onMount(() => {
+		if (data.pusher) {
+			return subscribeRealtime(data.pusher, 'admin-orders', () => invalidateAll());
 		}
-	}
-
-	onMount(() =>
-		subscribeRealtime(data.pusher, 'admin-orders', (event) => {
-			if (event === 'new-batch' || event === 'payment-requested') playNewOrderSound();
-			invalidateAll();
-		})
-	);
+		const interval = setInterval(() => invalidateAll(), 10000);
+		return () => clearInterval(interval);
+	});
 </script>
 
 <div class="space-y-6">

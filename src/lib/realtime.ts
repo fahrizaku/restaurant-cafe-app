@@ -8,6 +8,10 @@ export interface RealtimeConfig {
 }
 
 let client: PusherType | null = null;
+// Hitung subscriber per channel: beberapa komponen (Header + halaman) bisa
+// mendengarkan channel yang sama — unsubscribe hanya saat subscriber habis,
+// agar cleanup satu komponen tidak mematikan listener komponen lain.
+const refCounts = new Map<string, number>();
 
 /**
  * Subscribe ke satu channel; onEvent dipanggil untuk semua event aplikasi
@@ -21,18 +25,36 @@ export function subscribeRealtime(
 ): () => void {
 	if (!config) return () => {};
 
-	let unsubscribe = () => {};
+	let cancelled = false;
+	let cleanup = () => {};
 
 	import('pusher-js').then(({ default: Pusher }) => {
+		if (cancelled) return;
 		if (!client) {
 			client = new Pusher(config.key, { cluster: config.cluster });
 		}
 		const channel = client.subscribe(channelName);
-		channel.bind_global((event: string, data: unknown) => {
+		refCounts.set(channelName, (refCounts.get(channelName) ?? 0) + 1);
+
+		const handler = (event: string, data: unknown) => {
 			if (!event.startsWith('pusher:')) onEvent(event, data);
-		});
-		unsubscribe = () => client!.unsubscribe(channelName);
+		};
+		channel.bind_global(handler);
+
+		cleanup = () => {
+			channel.unbind_global(handler);
+			const remaining = (refCounts.get(channelName) ?? 1) - 1;
+			if (remaining <= 0) {
+				refCounts.delete(channelName);
+				client?.unsubscribe(channelName);
+			} else {
+				refCounts.set(channelName, remaining);
+			}
+		};
 	});
 
-	return () => unsubscribe();
+	return () => {
+		cancelled = true;
+		cleanup();
+	};
 }

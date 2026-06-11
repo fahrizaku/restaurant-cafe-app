@@ -54,9 +54,13 @@
 		return new Date(date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 	}
 
-	onMount(() =>
-		subscribeRealtime(data.pusher, `session-${data.session.id}`, () => invalidateAll())
-	);
+	onMount(() => {
+		if (data.pusher) {
+			return subscribeRealtime(data.pusher, `session-${data.session.id}`, () => invalidateAll());
+		}
+		const interval = setInterval(() => invalidateAll(), 10000);
+		return () => clearInterval(interval);
+	});
 </script>
 
 <div class="space-y-6">

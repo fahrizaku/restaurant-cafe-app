@@ -42,7 +42,8 @@ Customer bisa memilih cara bayar di halaman tagihan (`/table/[id]` & `/order/sta
 Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke polling 10 detik).
 
 - Server: `src/lib/server/pusher.ts` — REST API langsung (Web Crypto, tanpa SDK Node). `pusherTrigger()` no-op jika env kosong.
-- Client: `src/lib/realtime.ts` (`pusher-js`), config dikirim lewat `load` (`pusherClientConfig()`).
+- Client: `src/lib/realtime.ts` (`pusher-js`), config dikirim lewat `load` (`pusherClientConfig()`). Subscription di-ref-count per channel — beberapa komponen boleh subscribe channel sama (Header + halaman); jangan panggil `client.unsubscribe` langsung.
+- Notifikasi admin terpusat di `Header.svelte` (lonceng + suara via `src/lib/notification-sound.ts` — AudioContext di-unlock pada interaksi pertama karena autoplay policy). Halaman admin hanya `invalidateAll()` + fallback polling 10 detik jika Pusher tidak dikonfigurasi.
 - Channel: `admin-orders` (semua event, notif + suara di `/admin/orders`), `session-{id}` (status pesanan customer & detail admin), `table-{id}` (bill meja).
 - Event: `new-batch` (order baru dari menu/cart/POS), `session-updated` (aksi kasir: mark paid / complete / cancel / reopen / batch status / tolak transfer), `payment-requested` (customer klaim sudah transfer — bunyi di `/admin/orders`).
 - Env (secret): `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER`. Lokal: `.dev.vars` (lihat `.dev.vars.example`); produksi: `npx wrangler pages secret put`.

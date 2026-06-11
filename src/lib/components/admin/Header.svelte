@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { subscribeRealtime, type RealtimeConfig } from '$lib/realtime';
+	import { initNotificationSound, playNotificationSound } from '$lib/notification-sound';
 
 	let {
 		sidebarToggle = false,
@@ -13,7 +14,13 @@
 		pusher?: RealtimeConfig | null;
 	} = $props();
 
-	type Notif = { id: string; sessionId: string; time: Date; read: boolean };
+	type Notif = {
+		id: string;
+		sessionId: string;
+		type: 'order' | 'payment';
+		time: Date;
+		read: boolean;
+	};
 
 	let notifOpen = $state(false);
 	let userOpen = $state(false);
@@ -21,8 +28,14 @@
 
 	const unreadCount = $derived(notifications.filter((n) => !n.read).length);
 
-	function addNotif(sessionId: string) {
-		notifications.unshift({ id: crypto.randomUUID(), sessionId, time: new Date(), read: false });
+	function addNotif(sessionId: string, type: Notif['type']) {
+		notifications.unshift({
+			id: crypto.randomUUID(),
+			sessionId,
+			type,
+			time: new Date(),
+			read: false
+		});
 		// Simpan maksimal 20 notif
 		if (notifications.length > 20) notifications = notifications.slice(0, 20);
 	}
@@ -48,14 +61,20 @@
 		return `${Math.floor(diff / 3600)} jam lalu`;
 	}
 
-	onMount(() =>
-		subscribeRealtime(pusher, 'admin-orders', (event, data) => {
-			if (event === 'new-batch') {
+	onMount(() => {
+		const cleanupSound = initNotificationSound();
+		const cleanupRealtime = subscribeRealtime(pusher, 'admin-orders', (event, data) => {
+			if (event === 'new-batch' || event === 'payment-requested') {
 				const d = data as { sessionId: string };
-				addNotif(d.sessionId);
+				addNotif(d.sessionId, event === 'new-batch' ? 'order' : 'payment');
+				playNotificationSound();
 			}
-		})
-	);
+		});
+		return () => {
+			cleanupSound();
+			cleanupRealtime();
+		};
+	});
 </script>
 
 <header
@@ -135,18 +154,37 @@
 											class="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/5
 											{!notif.read ? 'bg-blue-50 dark:bg-blue-500/5' : ''}"
 										>
-											<span
-												class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-red-500 dark:bg-red-500/10"
-											>
-												<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-													<path
-														d="M3 3a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 13.846 4.632 16 6.414 16H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z"
-													/>
-												</svg>
-											</span>
+											{#if notif.type === 'payment'}
+												<span
+													class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-500/10"
+												>
+													<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+														<path
+															d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"
+														/>
+														<path
+															fill-rule="evenodd"
+															d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"
+															clip-rule="evenodd"
+														/>
+													</svg>
+												</span>
+											{:else}
+												<span
+													class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-red-500 dark:bg-red-500/10"
+												>
+													<svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+														<path
+															d="M3 3a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 13.846 4.632 16 6.414 16H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 6H6.28l-.31-1.243A1 1 0 005 4H3z"
+														/>
+													</svg>
+												</span>
+											{/if}
 											<div class="flex-1 min-w-0">
 												<p class="text-sm font-medium text-gray-800 dark:text-white">
-													Order baru masuk
+													{notif.type === 'payment'
+														? 'Klaim transfer masuk'
+														: 'Order baru masuk'}
 												</p>
 												<p class="truncate text-xs text-gray-500">
 													Sesi #{notif.sessionId.slice(0, 8)}
