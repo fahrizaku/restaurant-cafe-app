@@ -7,6 +7,41 @@ export const settings = sqliteTable('settings', {
 	value: text('value').notNull()
 });
 
+// Akun staf admin. Role: owner (akses penuh) / cashier (tanpa laporan, settings, kelola user)
+export const users = sqliteTable(
+	'users',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		username: text('username').notNull(),
+		name: text('name').notNull(),
+		// Format: pbkdf2$<iterations>$<salt_hex>$<hash_hex>
+		passwordHash: text('password_hash').notNull(),
+		role: text('role', { enum: ['owner', 'cashier'] })
+			.notNull()
+			.default('cashier'),
+		createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date())
+	},
+	(t) => [uniqueIndex('users_username_unique').on(t.username)]
+);
+
+// Sesi login admin. id = SHA-256 dari token di cookie (token mentah tidak disimpan).
+export const authSessions = sqliteTable('auth_sessions', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => users.id),
+	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull()
+});
+
+export const authSessionsRelations = relations(authSessions, ({ one }) => ({
+	user: one(users, {
+		fields: [authSessions.userId],
+		references: [users.id]
+	})
+}));
+
 export const categories = sqliteTable('categories', {
 	id: text('id')
 		.primaryKey()

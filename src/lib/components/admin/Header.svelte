@@ -7,11 +7,13 @@
 	let {
 		sidebarToggle = false,
 		onToggleSidebar,
-		pusher = null
+		pusher = null,
+		user = null
 	}: {
 		sidebarToggle: boolean;
 		onToggleSidebar: () => void;
 		pusher?: RealtimeConfig | null;
+		user?: { name: string; role: 'owner' | 'cashier' } | null;
 	} = $props();
 
 	type Notif = {
@@ -228,9 +230,9 @@
 					<div
 						class="bg-brand-500 flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold text-white"
 					>
-						A
+						{(user?.name ?? 'Admin').charAt(0).toUpperCase()}
 					</div>
-					<span class="hidden text-sm font-medium lg:block">Admin</span>
+					<span class="hidden text-sm font-medium lg:block">{user?.name ?? 'Admin'}</span>
 					<svg
 						class="stroke-gray-500 dark:stroke-gray-400"
 						class:rotate-180={userOpen}
@@ -253,7 +255,13 @@
 					<div
 						class="shadow-theme-lg absolute right-0 mt-2 w-52 rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"
 					>
-						<ul class="flex flex-col gap-1 border-b border-gray-200 pb-3 dark:border-gray-800">
+						{#if user}
+							<div class="border-b border-gray-200 px-3 pb-3 dark:border-gray-800">
+								<p class="text-sm font-medium text-gray-800 dark:text-white">{user.name}</p>
+								<p class="text-xs text-gray-400">{user.role === 'owner' ? 'Owner' : 'Kasir'}</p>
+							</div>
+						{/if}
+						<ul class="flex flex-col gap-1 border-b border-gray-200 py-2 dark:border-gray-800">
 							<li>
 								<a
 									href="/"
@@ -263,11 +271,14 @@
 								</a>
 							</li>
 						</ul>
-						<button
-							class="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
-						>
-							Sign out
-						</button>
+						<form method="POST" action="/admin/logout">
+							<button
+								type="submit"
+								class="mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"
+							>
+								Sign out
+							</button>
+						</form>
 					</div>
 				{/if}
 			</div>

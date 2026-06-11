@@ -35,7 +35,7 @@ Konteks meja customer diingat di cookie `table_id` (6 jam) via `src/lib/server/t
 
 ### Pembayaran Customer
 
-Customer bisa memilih cara bayar di halaman tagihan (`/table/[id]` & `/order/status/[id]`): **bayar ke kasir** (instruksi statis) atau **transfer di meja**. `paymentStatus`: `unpaid` → `pending` (customer upload bukti transfer, klaim sudah bayar) → `paid` (kasir verifikasi manual). Logika di `src/lib/server/payment.ts` (`requestTransfer()`): validasi file (jpeg/png/webp, maks 5 MB), simpan ke R2 `payment-proofs/{sessionId}/{ts}`, kolom `payment_proof` di sesi. Bukti disajikan ke kasir via `GET /admin/payment-proof/[...key]` (stream dari R2, di balik Basic Auth). Kasir konfirmasi (markPaid transfer) atau tolak (`rejectTransfer` → `unpaid`, hapus bukti). Order baru saat `pending` → reset ke `unpaid` + hapus klaim. Info rekening dari tabel `settings` (`bank_name`, `bank_account`, `bank_holder`) via `getBankInfo()` di `src/lib/server/settings.ts`; jika kosong, opsi transfer disembunyikan. Nilai enum `pending` hanya level TypeScript (kolom text tanpa CHECK).
+Customer bisa memilih cara bayar di halaman tagihan (`/table/[id]` & `/order/status/[id]`): **bayar ke kasir** (instruksi statis) atau **transfer di meja**. `paymentStatus`: `unpaid` → `pending` (customer upload bukti transfer, klaim sudah bayar) → `paid` (kasir verifikasi manual). Logika di `src/lib/server/payment.ts` (`requestTransfer()`): validasi file (jpeg/png/webp, maks 5 MB), simpan ke R2 `payment-proofs/{sessionId}/{ts}`, kolom `payment_proof` di sesi. Bukti disajikan ke kasir via `GET /admin/payment-proof/[...key]` (stream dari R2, di balik auth admin). Kasir konfirmasi (markPaid transfer) atau tolak (`rejectTransfer` → `unpaid`, hapus bukti). Order baru saat `pending` → reset ke `unpaid` + hapus klaim. Info rekening dari tabel `settings` (`bank_name`, `bank_account`, `bank_holder`) via `getBankInfo()` di `src/lib/server/settings.ts`; jika kosong, opsi transfer disembunyikan. Nilai enum `pending` hanya level TypeScript (kolom text tanpa CHECK).
 
 ### Realtime (Pusher)
 
@@ -47,18 +47,31 @@ Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke
 - Channel: `admin-orders` (semua event, notif + suara di `/admin/orders`), `session-{id}` (status pesanan customer & detail admin), `table-{id}` (bill meja).
 - Event: `new-batch` (order baru dari menu/cart/POS), `session-updated` (aksi kasir: mark paid / complete / cancel / reopen / batch status / tolak transfer), `payment-requested` (customer klaim sudah transfer — bunyi di `/admin/orders`).
 - Env (secret): `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER`. Lokal: `.dev.vars` (lihat `.dev.vars.example`); produksi: `npx wrangler pages secret put`.
+- Event `order-confirmed` (kasir ubah batch ke `processing`) membawa `estimatedMinutes` opsional (input kasir di detail order, validasi 1–999) — toast customer menampilkan "Siap dalam ±X menit."
+
+### Auth Admin (Multi-user/Role)
+
+Login cookie session di `/admin/login`, menggantikan Basic Auth. Logika di `src/lib/server/auth.ts` + `src/hooks.server.ts`.
+
+- Tabel `users` (role: `owner` / `cashier`) + `auth_sessions` (id = SHA-256 token cookie `admin_session`, exp 7 hari).
+- Password: PBKDF2-SHA256 100k iterasi (Web Crypto), format `pbkdf2$iter$salt$hash`.
+- Hooks: semua `/admin/*` (kecuali `/admin/login`) wajib sesi valid → redirect login dengan `?redirectTo=`; `locals.user` diisi. Kasir diblokir dari `/admin/reports`, `/admin/settings`, `/admin/users` (daftar `OWNER_ONLY_PREFIXES`).
+- Setup pertama kali: jika tabel `users` kosong, `/admin/login` menampilkan form buat akun owner.
+- `/admin/users` (owner only): tambah akun, reset password (hapus semua sesi user), hapus akun (tidak bisa hapus diri sendiri / owner terakhir).
+- Logout: POST `/admin/logout`. Sidebar menyaring menu per role; Header tampilkan nama + role.
+- `+page@.svelte` dipakai `/admin/login` (bypass layout admin, seperti halaman print).
 
 ## Halaman
 
 **Publik:** `/` landing · `/menu?table=T-01` order · `/table/T-01` status bill · `/bill` resolver tagihan (redirect via cookie meja/sesi, atau empty state)
 
-**Admin:** `/admin` dashboard · `/admin/orders` daftar sesi · `/admin/orders/[id]` detail · `/admin/menus` · `/admin/categories` · `/admin/tables` · `/admin/pos` POS kasir · `/admin/settings` pengaturan (rekening transfer) · `/admin/reports` laporan harian (pendapatan per hari + item terlaris, filter 7/30/90 hari)
+**Admin:** `/admin/login` login/setup owner · `/admin` dashboard · `/admin/orders` daftar sesi · `/admin/orders/[id]` detail · `/admin/orders/[id]/print` struk thermal 80mm (auto-print, layout root via `+page@.svelte`) · `/admin/menus` · `/admin/categories` · `/admin/tables` · `/admin/pos` POS kasir · `/admin/settings` pengaturan (nama cafe + rekening transfer) · `/admin/reports` laporan harian (pendapatan per hari + item terlaris, filter 7/30/90 hari) · `/admin/users` kelola akun staf (owner only)
 
 ## Status Fitur
 
-Selesai: manajemen menu/kategori/meja, QR order, admin orders, dashboard, POS kasir, laporan harian.
+Selesai: manajemen menu/kategori/meja, QR order, admin orders, dashboard, POS kasir, laporan harian, print struk, estimasi waktu order, multi-user/role.
 
-Belum: laporan bulanan, print struk, multi-user/role.
+Belum: laporan bulanan.
 
 ## Sebelum Commit
 

@@ -8,7 +8,7 @@
 </script>
 
 <div class="font-outfit flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
-	<Sidebar {sidebarToggle} onClose={() => (sidebarToggle = false)} />
+	<Sidebar {sidebarToggle} onClose={() => (sidebarToggle = false)} role={data.user?.role ?? 'owner'} />
 
 	{#if sidebarToggle}
 		<div
@@ -23,6 +23,7 @@
 			{sidebarToggle}
 			onToggleSidebar={() => (sidebarToggle = !sidebarToggle)}
 			pusher={data.pusher}
+			user={data.user}
 		/>
 
 		<main class="p-4 md:p-6">

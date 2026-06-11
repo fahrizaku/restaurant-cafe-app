@@ -1,8 +1,8 @@
 # Salin ke .dev.vars untuk pengembangan lokal.
 # Untuk produksi: npx wrangler pages secret put <NAMA>
 
-# Password akses halaman admin (opsional — jika tidak diset, admin terbuka tanpa password)
-ADMIN_PASSWORD=""
+# Auth admin sekarang pakai akun user (tabel users) — login di /admin/login.
+# Akun owner pertama dibuat lewat form setup saat belum ada user.
 
 PUSHER_APP_ID=""
 PUSHER_KEY=""

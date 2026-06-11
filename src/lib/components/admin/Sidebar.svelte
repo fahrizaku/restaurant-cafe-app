@@ -1,19 +1,25 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 
-	let { sidebarToggle = false, onClose }: { sidebarToggle: boolean; onClose?: () => void } =
-		$props();
+	let {
+		sidebarToggle = false,
+		onClose,
+		role = 'owner'
+	}: { sidebarToggle: boolean; onClose?: () => void; role?: 'owner' | 'cashier' } = $props();
 
-	const navItems = [
-		{ label: 'Dashboard', href: '/admin', icon: 'dashboard' },
-		{ label: 'POS Kasir', href: '/admin/pos', icon: 'pos' },
-		{ label: 'Orders', href: '/admin/orders', icon: 'orders' },
-		{ label: 'Laporan', href: '/admin/reports', icon: 'reports' },
-		{ label: 'Menus', href: '/admin/menus', icon: 'menus' },
-		{ label: 'Categories', href: '/admin/categories', icon: 'categories' },
-		{ label: 'Tables', href: '/admin/tables', icon: 'tables' },
-		{ label: 'Settings', href: '/admin/settings', icon: 'settings' }
+	const allNavItems = [
+		{ label: 'Dashboard', href: '/admin', icon: 'dashboard', ownerOnly: false },
+		{ label: 'POS Kasir', href: '/admin/pos', icon: 'pos', ownerOnly: false },
+		{ label: 'Orders', href: '/admin/orders', icon: 'orders', ownerOnly: false },
+		{ label: 'Laporan', href: '/admin/reports', icon: 'reports', ownerOnly: true },
+		{ label: 'Menus', href: '/admin/menus', icon: 'menus', ownerOnly: false },
+		{ label: 'Categories', href: '/admin/categories', icon: 'categories', ownerOnly: false },
+		{ label: 'Tables', href: '/admin/tables', icon: 'tables', ownerOnly: false },
+		{ label: 'Users', href: '/admin/users', icon: 'users', ownerOnly: true },
+		{ label: 'Settings', href: '/admin/settings', icon: 'settings', ownerOnly: true }
 	];
+
+	const navItems = $derived(allNavItems.filter((item) => role === 'owner' || !item.ownerOnly));
 
 	function isActive(href: string) {
 		if (href === '/admin') return $page.url.pathname === '/admin';
@@ -158,6 +164,22 @@
 											fill-rule="evenodd"
 											clip-rule="evenodd"
 											d="M3.25 5.5C3.25 4.25736 4.25736 3.25 5.5 3.25H18.5C19.7426 3.25 20.75 4.25736 20.75 5.5V18.5C20.75 19.7426 19.7426 20.75 18.5 20.75H5.5C4.25736 20.75 3.25 19.7426 3.25 18.5V5.5ZM5.5 4.75C5.08579 4.75 4.75 5.08579 4.75 5.5V8.58325L19.25 8.58325V5.5C19.25 5.08579 18.9142 4.75 18.5 4.75H5.5ZM19.25 10.0833H15.416V13.9165H19.25V10.0833ZM13.916 10.0833L10.083 10.0833V13.9165L13.916 13.9165V10.0833ZM8.58301 10.0833H4.75V13.9165H8.58301V10.0833ZM4.75 18.5V15.4165H8.58301V19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5ZM10.083 19.25V15.4165L13.916 15.4165V19.25H10.083ZM15.416 19.25V15.4165H19.25V18.5C19.25 18.9142 18.9142 19.25 18.5 19.25H15.416Z"
+											fill=""
+										/>
+									</svg>
+								{:else if item.icon === 'users'}
+									<svg
+										class="size-6"
+										class:menu-item-icon-active={isActive(item.href)}
+										class:menu-item-icon-inactive={!isActive(item.href)}
+										viewBox="0 0 24 24"
+										fill="none"
+										xmlns="http://www.w3.org/2000/svg"
+									>
+										<path
+											fill-rule="evenodd"
+											clip-rule="evenodd"
+											d="M8.5 4.75C6.98122 4.75 5.75 5.98122 5.75 7.5C5.75 9.01878 6.98122 10.25 8.5 10.25C10.0188 10.25 11.25 9.01878 11.25 7.5C11.25 5.98122 10.0188 4.75 8.5 4.75ZM4.25 7.5C4.25 5.15279 6.15279 3.25 8.5 3.25C10.8472 3.25 12.75 5.15279 12.75 7.5C12.75 9.84721 10.8472 11.75 8.5 11.75C6.15279 11.75 4.25 9.84721 4.25 7.5ZM14.0001 4.75C13.5859 4.75 13.2501 4.41421 13.2501 4C13.2501 3.58579 13.5859 3.25 14.0001 3.25C16.3473 3.25 18.2501 5.15279 18.2501 7.5C18.2501 9.84721 16.3473 11.75 14.0001 11.75C13.5859 11.75 13.2501 11.4142 13.2501 11C13.2501 10.5858 13.5859 10.25 14.0001 10.25C15.5189 10.25 16.7501 9.01878 16.7501 7.5C16.7501 5.98122 15.5189 4.75 14.0001 4.75ZM2.25 18C2.25 15.3766 4.37665 13.25 7 13.25H10C12.6234 13.25 14.75 15.3766 14.75 18V19.5C14.75 19.9142 14.4142 20.25 14 20.25C13.5858 20.25 13.25 19.9142 13.25 19.5V18C13.25 16.2051 11.7949 14.75 10 14.75H7C5.20507 14.75 3.75 16.2051 3.75 18V19.5C3.75 19.9142 3.41421 20.25 3 20.25C2.58579 20.25 2.25 19.9142 2.25 19.5V18ZM16.3589 14.0402C16.4585 13.6382 16.8651 13.393 17.2671 13.4926C19.3793 14.0161 20.9999 15.8479 20.9999 18.0902V19.5C20.9999 19.9142 20.6641 20.25 20.2499 20.25C19.8357 20.25 19.4999 19.9142 19.4999 19.5V18.0902C19.4999 16.6088 18.4216 15.3274 16.9064 14.9519C16.5044 14.8523 16.2593 14.4422 16.3589 14.0402Z"
 											fill=""
 										/>
 									</svg>
