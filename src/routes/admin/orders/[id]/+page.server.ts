@@ -243,7 +243,11 @@ export const actions: Actions = {
 		]);
 
 		const channels = sessionChannels(params.id, updated?.tableId);
-		await pusherTrigger(platform.env, channels, 'session-updated', { sessionId: params.id });
+		// batchStatus dipakai customer untuk toast "pesanan siap" / "dibatalkan"
+		await pusherTrigger(platform.env, channels, 'session-updated', {
+			sessionId: params.id,
+			batchStatus: status
+		});
 
 		// Notifikasi khusus ke customer saat batch mulai diproses
 		if (status === 'processing') {

@@ -48,6 +48,7 @@ Notifikasi realtime via Pusher Channels (opsional — tanpa env, app fallback ke
 - Event: `new-batch` (order baru dari menu/cart/POS), `session-updated` (aksi kasir: mark paid / complete / cancel / reopen / batch status / tolak transfer), `payment-requested` (customer klaim sudah transfer — bunyi di `/admin/orders`).
 - Env (secret): `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER`. Lokal: `.dev.vars` (lihat `.dev.vars.example`); produksi: `npx wrangler pages secret put`.
 - Event `order-confirmed` (kasir ubah batch ke `processing`) membawa `estimatedMinutes` opsional (input kasir di detail order, validasi 1–999) — toast customer menampilkan "Siap dalam ±X menit."
+- `session-updated` dari aksi ubah status batch membawa `batchStatus` — halaman customer (`/table/[id]`, `/order/status/[id]`) toast "Pesanan Anda siap!" (done) / "Satu pesanan dibatalkan." (cancelled). Semua toast customer disertai suara (`notification-sound.ts`, dipakai bersama admin) + `navigator.vibrate`.
 
 ### Auth Admin (Multi-user/Role)
 

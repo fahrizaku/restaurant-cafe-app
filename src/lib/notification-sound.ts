@@ -1,4 +1,4 @@
-// Suara notifikasi admin. Browser memblokir audio yang tidak dipicu interaksi
+// Suara notifikasi (admin & customer). Browser memblokir audio yang tidak dipicu interaksi
 // user (autoplay policy), jadi AudioContext dibuat/di-resume lebih dulu pada
 // interaksi pertama — setelah itu beep dari event Pusher bisa berbunyi.
 

@@ -7,6 +7,7 @@
 	import { formatRupiah } from '$lib/utils';
 	import { cart } from '$lib/stores/cart.svelte';
 	import { subscribeRealtime } from '$lib/realtime';
+	import { initNotificationSound, playNotificationSound } from '$lib/notification-sound';
 
 	let { data, form } = $props();
 	const session = $derived(data.session);
@@ -32,25 +33,49 @@
 		cancelled: 'status--cancelled'
 	};
 
-	let showConfirmToast = $state(false);
-	let toastMinutes = $state<number | null>(null);
+	let toastText = $state<string | null>(null);
 	let toastTimer: ReturnType<typeof setTimeout> | null = null;
+
+	function showToast(text: string) {
+		toastText = text;
+		if (toastTimer) clearTimeout(toastTimer);
+		toastTimer = setTimeout(() => (toastText = null), 4000);
+		playNotificationSound();
+		try {
+			navigator.vibrate?.(200);
+		} catch {
+			// abaikan — vibrate tidak tersedia
+		}
+	}
 
 	// Realtime via Pusher; fallback polling 10 detik jika belum dikonfigurasi
 	onMount(() => {
 		if (data.pusher) {
-			return subscribeRealtime(data.pusher, `session-${data.session.id}`, (event, evData) => {
-				if (event === 'order-confirmed') {
-					const payload = evData as { estimatedMinutes?: number | null };
-					toastMinutes = payload?.estimatedMinutes ?? null;
-					showConfirmToast = true;
-					if (toastTimer) clearTimeout(toastTimer);
-					toastTimer = setTimeout(() => {
-						showConfirmToast = false;
-					}, 4000);
+			const cleanupSound = initNotificationSound();
+			const unsubscribe = subscribeRealtime(
+				data.pusher,
+				`session-${data.session.id}`,
+				(event, evData) => {
+					if (event === 'order-confirmed') {
+						const payload = evData as { estimatedMinutes?: number | null };
+						showToast(
+							payload?.estimatedMinutes
+								? `Pesanan diterima! Siap dalam ±${payload.estimatedMinutes} menit.`
+								: 'Pesanan diterima! Dapur sedang menyiapkan.'
+						);
+					} else if (event === 'session-updated') {
+						const payload = evData as { batchStatus?: string };
+						if (payload?.batchStatus === 'done') showToast('Pesanan Anda siap!');
+						else if (payload?.batchStatus === 'cancelled') showToast('Satu pesanan dibatalkan.');
+					}
+					invalidateAll();
 				}
-				invalidateAll();
-			});
+			);
+			return () => {
+				cleanupSound();
+				unsubscribe();
+				if (toastTimer) clearTimeout(toastTimer);
+			};
 		}
 		const interval = setInterval(() => invalidateAll(), 10000);
 		return () => {
@@ -73,10 +98,10 @@
 
 <Navbar />
 
-{#if showConfirmToast}
+{#if toastText}
 	<div class="order-toast" role="status" aria-live="polite">
 		<i class="ri-restaurant-2-line"></i>
-		<span>Pesanan diterima! {toastMinutes ? `Siap dalam ±${toastMinutes} menit.` : 'Dapur sedang menyiapkan.'}</span>
+		<span>{toastText}</span>
 	</div>
 {/if}
 
