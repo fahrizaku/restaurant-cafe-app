@@ -27,6 +27,12 @@ export async function getBankInfo(db: Db): Promise<BankInfo | null> {
 	return { bankName, bankAccount, bankHolder: map.get('bank_holder')?.trim() ?? '' };
 }
 
+/** Nama cafe dari settings; fallback 'Cafe' jika belum diisi. */
+export async function getCafeName(db: Db): Promise<string> {
+	const rows = await db.select().from(settings).where(inArray(settings.key, ['cafe_name']));
+	return rows[0]?.value?.trim() || 'Cafe';
+}
+
 export async function setSetting(db: Db, key: string, value: string) {
 	await db
 		.insert(settings)

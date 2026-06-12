@@ -1,10 +1,12 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
+
+	let { data } = $props();
 </script>
 
 <svelte:head>
-	<title>Tagihan — Cafe</title>
+	<title>Tagihan — {data.cafeName}</title>
 </svelte:head>
 
 <Navbar />

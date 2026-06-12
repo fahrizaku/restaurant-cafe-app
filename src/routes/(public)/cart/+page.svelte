@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>Keranjang Pesanan — Cafe</title>
+	<title>Keranjang Pesanan — {data.cafeName}</title>
 </svelte:head>
 
 <Navbar />

@@ -104,7 +104,7 @@
 </script>
 
 <svelte:head>
-	<title>Status Pesanan — {session.customerName || session.table?.name || 'Cafe'}</title>
+	<title>Status Pesanan — {session.customerName || session.table?.name || data.cafeName}</title>
 </svelte:head>
 
 <Navbar />

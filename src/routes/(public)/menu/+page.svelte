@@ -48,7 +48,7 @@
 </script>
 
 <svelte:head>
-	<title>Menu — Restoran</title>
+	<title>Menu — {data.cafeName}</title>
 </svelte:head>
 
 <Navbar />
