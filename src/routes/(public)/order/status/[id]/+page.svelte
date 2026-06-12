@@ -654,7 +654,8 @@
 		font-weight: var(--font-medium);
 		box-shadow: 0 8px 24px hsla(220, 70%, 30%, 0.35);
 		animation: toast-in 0.3s ease;
-		white-space: nowrap;
+		width: max-content;
+		max-width: calc(100vw - 2rem);
 	}
 
 	.order-toast i {
