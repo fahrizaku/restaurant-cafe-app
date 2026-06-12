@@ -54,6 +54,20 @@ function createCart() {
 		persist();
 	}
 
+	/** Tambah beberapa sekaligus (dari bottom sheet detail); notes menimpa jika diisi. */
+	function addMany(item: Omit<CartItem, 'quantity'>, qty: number, notes?: string) {
+		if (!Number.isInteger(qty) || qty <= 0) return;
+		const trimmed = notes?.trim().slice(0, 200);
+		const existing = items.find((i) => i.menuId === item.menuId);
+		if (existing) {
+			existing.quantity += qty;
+			if (trimmed) existing.notes = trimmed;
+		} else {
+			items.push({ ...item, quantity: qty, notes: trimmed || undefined });
+		}
+		persist();
+	}
+
 	function remove(menuId: string) {
 		const idx = items.findIndex((i) => i.menuId === menuId);
 		if (idx !== -1) items.splice(idx, 1);
@@ -92,6 +106,7 @@ function createCart() {
 			return total;
 		},
 		add,
+		addMany,
 		remove,
 		updateQty,
 		updateNotes,

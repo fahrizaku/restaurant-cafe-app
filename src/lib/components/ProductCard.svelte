@@ -7,9 +7,10 @@
 		image?: string;
 		description?: string;
 		onAdd?: () => void;
+		onOpen?: () => void;
 	}
 
-	let { name, price, image, description, onAdd }: Props = $props();
+	let { name, price, image, description, onAdd, onOpen }: Props = $props();
 
 	let particles = $state<{ id: number; x: number; y: number }[]>([]);
 	let flyingIcons = $state<
@@ -17,6 +18,8 @@
 	>([]);
 
 	function handleAdd(e: MouseEvent) {
+		// Jangan ikut membuka sheet detail saat quick-add
+		e.stopPropagation();
 		const id = Date.now();
 		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
 
@@ -47,7 +50,14 @@
 	}
 </script>
 
-<article class="products__card">
+<div
+	class="products__card"
+	class:products__card--clickable={onOpen}
+	role="button"
+	tabindex={0}
+	onclick={onOpen}
+	onkeydown={(e) => onOpen && (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onOpen())}
+>
 	<div class="card__media">
 		{#if image}
 			<img src={image} alt={name} class="card__photo" loading="lazy" />
@@ -73,7 +83,7 @@
 			</button>
 		</div>
 	</div>
-</article>
+</div>
 
 {#each flyingIcons as icon (icon.id)}
 	<div class="fly-outer" style="--start-x: {icon.startX}px; --dest-x: {icon.destX}px;">
@@ -99,6 +109,10 @@
 	.products__card:hover {
 		transform: translateY(-0.25rem);
 		box-shadow: 0 12px 32px hsla(353, 100%, 8%, 0.16);
+	}
+
+	.products__card--clickable {
+		cursor: pointer;
 	}
 
 	.products__content {

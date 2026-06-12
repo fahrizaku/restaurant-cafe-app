@@ -4,9 +4,13 @@
 	import MobileNav from '$lib/components/MobileNav.svelte';
 	import PublicFooter from '$lib/components/PublicFooter.svelte';
 	import ProductCard from '$lib/components/ProductCard.svelte';
+	import ProductSheet from '$lib/components/ProductSheet.svelte';
 	import { formatRupiah } from '$lib/utils';
 
 	let { data } = $props();
+
+	type Menu = (typeof data.categories)[number]['menus'][number];
+	let selectedMenu = $state<Menu | null>(null);
 
 	let activeCategory = $state<string>('all');
 	let inputValue = $state('');
@@ -153,6 +157,7 @@
 								price={menu.price}
 								image={menu.image ?? undefined}
 								description={menu.description ?? undefined}
+								onOpen={() => (selectedMenu = menu)}
 								onAdd={() =>
 									cart.add({
 										menuId: menu.id,
@@ -168,6 +173,10 @@
 		</div>
 	{/if}
 </main>
+
+{#if selectedMenu}
+	<ProductSheet menu={selectedMenu} onClose={() => (selectedMenu = null)} />
+{/if}
 
 <MobileNav activeSessionId={data.activeSession?.id} />
 
