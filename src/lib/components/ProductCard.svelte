@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { formatRupiah } from '$lib/utils';
+	import { cart } from '$lib/stores/cart.svelte';
 
 	interface Props {
+		menuId: string;
 		name: string;
 		price: number;
 		image?: string;
@@ -10,7 +12,14 @@
 		onOpen?: () => void;
 	}
 
-	let { name, price, image, description, onAdd, onOpen }: Props = $props();
+	let { menuId, name, price, image, description, onAdd, onOpen }: Props = $props();
+
+	const cartQty = $derived(cart.items.find((i) => i.menuId === menuId)?.quantity ?? 0);
+
+	function decrement(e: MouseEvent) {
+		e.stopPropagation();
+		cart.updateQty(menuId, cartQty - 1);
+	}
 
 	let particles = $state<{ id: number; x: number; y: number }[]>([]);
 	let flyingIcons = $state<
@@ -75,12 +84,27 @@
 		</div>
 		<div class="products__footer">
 			<span class="products__price">{formatRupiah(price)}</span>
-			<button class="products__button" aria-label="Add {name} to cart" onclick={handleAdd}>
-				<i class="ri-add-line"></i>
-				{#each particles as particle (particle.id)}
-					<span class="plus-one" style="left: {particle.x}px; top: {particle.y}px;">+1</span>
-				{/each}
-			</button>
+			{#if cartQty > 0}
+				<div class="products__stepper">
+					<button class="stepper__btn" aria-label="Kurangi {name}" onclick={decrement}>
+						<i class="ri-subtract-line"></i>
+					</button>
+					<span class="stepper__qty">{cartQty}</span>
+					<button class="stepper__btn stepper__btn--plus" aria-label="Tambah {name}" onclick={handleAdd}>
+						<i class="ri-add-line"></i>
+						{#each particles as particle (particle.id)}
+							<span class="plus-one" style="left: {particle.x}px; top: {particle.y}px;">+1</span>
+						{/each}
+					</button>
+				</div>
+			{:else}
+				<button class="products__button" aria-label="Tambah {name} ke keranjang" onclick={handleAdd}>
+					<i class="ri-add-line"></i>
+					{#each particles as particle (particle.id)}
+						<span class="plus-one" style="left: {particle.x}px; top: {particle.y}px;">+1</span>
+					{/each}
+				</button>
+			{/if}
 		</div>
 	</div>
 </div>
@@ -210,6 +234,49 @@
 
 	.products__button:active {
 		transform: scale(0.9);
+	}
+
+	/* Stepper menggantikan tombol + saat item sudah di keranjang */
+	.products__stepper {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		background-color: var(--body-color);
+		border-radius: 0.625rem;
+		padding: 2px;
+		flex-shrink: 0;
+	}
+
+	.stepper__btn {
+		position: relative; /* anchor partikel +1 */
+		width: 26px;
+		height: 26px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.5rem;
+		background-color: var(--container-color);
+		color: var(--title-color);
+		font-size: 1rem;
+		cursor: pointer;
+		transition: transform 0.2s;
+	}
+
+	.stepper__btn:active {
+		transform: scale(0.9);
+	}
+
+	.stepper__btn--plus {
+		background-color: var(--first-color);
+		color: var(--white-color);
+	}
+
+	.stepper__qty {
+		min-width: 1.125rem;
+		text-align: center;
+		font-size: var(--small-font-size);
+		font-weight: var(--font-semi-bold);
+		color: var(--title-color);
 	}
 
 	.products__card:hover .card__photo {

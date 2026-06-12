@@ -275,6 +275,8 @@
 		font-weight: var(--font-semi-bold);
 		color: var(--title-color);
 		margin-bottom: 0.25rem;
+		/* Ruang untuk tombol hapus yang absolut di kanan atas */
+		padding-right: 1.75rem;
 	}
 	.item-price {
 		color: var(--first-color);

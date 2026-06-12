@@ -153,6 +153,7 @@
 					<div class="products__container container grid">
 						{#each cat.menus as menu (menu.id)}
 							<ProductCard
+								menuId={menu.id}
 								name={menu.name}
 								price={menu.price}
 								image={menu.image ?? undefined}

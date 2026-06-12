@@ -1,6 +1,5 @@
 <script lang="ts">
 	import '../../lib/styles/template.css';
-	import '../../lib/styles/admin.css';
 	let { children } = $props();
 </script>
 
