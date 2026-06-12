@@ -3,7 +3,6 @@
 	import { page } from '$app/state';
 	import { cart } from '$lib/stores/cart.svelte';
 
-	let isMenuOpen = $state(false);
 	let isShadowHeader = $state(false);
 
 	const cafeName = $derived((page.data.cafeName as string | undefined) ?? 'Cafe');
@@ -11,15 +10,6 @@
 	const isBillPage = $derived(
 		page.url.pathname.startsWith('/order/status') || page.url.pathname === '/bill'
 	);
-
-
-	function toggleMenu() {
-		isMenuOpen = !isMenuOpen;
-	}
-
-	function closeMenu() {
-		isMenuOpen = false;
-	}
 
 	onMount(() => {
 		const handleScroll = () => {
@@ -32,37 +22,10 @@
 
 <header class="header" id="header" class:shadow-header={isShadowHeader}>
 	<nav class="nav container">
-		<a href="/" class="nav__logo">
+		<a href="/menu" class="nav__logo">
 			<img src="/img/logo-pizza.svg" alt="logo" />
 			{cafeName}
 		</a>
-
-		<div class="nav__menu" id="nav-menu" class:show-menu={isMenuOpen}>
-			<ul class="nav__list">
-				<li>
-					<a href="/#home" class="nav__link active-link" onclick={closeMenu}>Home</a>
-				</li>
-				<li>
-					<a href="/#about" class="nav__link" onclick={closeMenu}>About Us</a>
-				</li>
-				<li>
-					<a href="/#popular" class="nav__link" onclick={closeMenu}>Popular</a>
-				</li>
-				<li>
-					<a href="/menu" class="nav__link" onclick={closeMenu}
-						>Menu</a
-					>
-				</li>
-				<li>
-					<a href="/#contact" class="nav__link" onclick={closeMenu}>Contact</a>
-				</li>
-			</ul>
-
-			<!-- Close button -->
-			<div class="nav__close" id="nav-close" onclick={toggleMenu} aria-hidden="true">
-				<i class="ri-close-large-line"></i>
-			</div>
-		</div>
 
 		<div class="nav__buttons">
 			<!-- Aksi desktop: keranjang & tagihan (mobile pakai MobileNav) -->
@@ -75,11 +38,6 @@
 			<a href="/bill" class="nav__action" class:nav__action--active={isBillPage} aria-label="Tagihan">
 				<i class="ri-receipt-line"></i>
 			</a>
-
-			<!-- Toggle button -->
-			<div class="nav__toggle" id="nav-toggle" onclick={toggleMenu} aria-hidden="true">
-				<i class="ri-apps-2-fill"></i>
-			</div>
 		</div>
 	</nav>
 </header>
