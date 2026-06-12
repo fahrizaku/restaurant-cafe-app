@@ -2,6 +2,7 @@
 	import { cart } from '$lib/stores/cart.svelte';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
+	import PublicFooter from '$lib/components/PublicFooter.svelte';
 	import ProductCard from '$lib/components/ProductCard.svelte';
 	import { formatRupiah } from '$lib/utils';
 
@@ -57,11 +58,17 @@
 	<!--==================== MENU TITLE ====================-->
 	<section class="section" id="menu-top" style="padding-bottom: 0;">
 		<div class="container">
-			{#if data.activeSession?.customerName}
-				<p style="text-align: center; margin-bottom: 1rem;">
-					Pesanan: {data.activeSession.customerName}
+			<div class="menu-hero">
+				<span class="menu-hero__eyebrow">Selamat datang di</span>
+				<h1 class="menu-hero__title">{data.cafeName}</h1>
+				<p class="menu-hero__subtitle">
+					{#if data.activeSession?.customerName}
+						Pesanan atas nama <strong>{data.activeSession.customerName}</strong>
+					{:else}
+						Pilih menu favorit Anda, pesan langsung dari sini.
+					{/if}
 				</p>
-			{/if}
+			</div>
 
 			{#if data.activeSession}
 				<a href={`/order/status/${data.activeSession.id}`} class="bill-banner">
@@ -110,7 +117,6 @@
 					class="filter-btn {!searchQuery && activeCategory === category.id ? 'active' : ''}"
 					onclick={() => selectCategory(category.id)}
 				>
-					<i class="ri-price-tag-3-line"></i>
 					<span>{category.name}</span>
 				</button>
 			{/each}
@@ -165,13 +171,35 @@
 
 <MobileNav activeSessionId={data.activeSession?.id} />
 
-<footer class="footer pb-mobile">
-	<div class="footer__container container">
-		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
-	</div>
-</footer>
+<PublicFooter />
 
 <style>
+	/* Menu hero */
+	.menu-hero {
+		text-align: center;
+		margin-bottom: 1.5rem;
+	}
+
+	.menu-hero__eyebrow {
+		display: block;
+		font-size: var(--small-font-size);
+		font-weight: var(--font-medium);
+		color: var(--first-color);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		margin-bottom: 0.25rem;
+	}
+
+	.menu-hero__title {
+		font-size: var(--bigger-font-size);
+		margin-bottom: 0.5rem;
+	}
+
+	.menu-hero__subtitle {
+		font-size: var(--small-font-size);
+		color: var(--text-color-light);
+	}
+
 	/* Bill banner */
 	.bill-banner {
 		display: flex;
@@ -385,9 +413,6 @@
 	}
 
 	@media screen and (max-width: 1150px) {
-		.pb-mobile {
-			padding-bottom: 6rem;
-		}
 		.main {
 			padding-bottom: 4rem;
 		}

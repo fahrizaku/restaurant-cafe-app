@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
+	import PublicFooter from '$lib/components/PublicFooter.svelte';
 	import { formatRupiah } from '$lib/utils';
 	import { Trash2, ChevronLeft } from 'lucide-svelte';
 
@@ -52,7 +53,13 @@
 					<div class="cart-items">
 						{#each cart.items as item}
 							<div class="cart-item-card">
-								<img src={item.image ?? '/img/product-1.png'} alt={item.name} class="item-img" />
+								{#if item.image}
+									<img src={item.image} alt={item.name} class="item-img" loading="lazy" />
+								{:else}
+									<div class="item-img item-img--placeholder" aria-hidden="true">
+										<i class="ri-restaurant-line"></i>
+									</div>
+								{/if}
 								<div class="item-info">
 									<h3 class="item-name">{item.name}</h3>
 									<p class="item-price">{formatRupiah(item.price)}</p>
@@ -183,11 +190,7 @@
 
 <MobileNav activeSessionId={data.activeSession?.id} />
 
-<footer class="footer pb-mobile">
-	<div class="footer__container container">
-		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
-	</div>
-</footer>
+<PublicFooter />
 
 <style>
 	.cart-header {
@@ -253,6 +256,16 @@
 		object-fit: cover;
 		border-radius: 1rem;
 		filter: var(--shadow-small-img);
+		flex-shrink: 0;
+	}
+	.item-img--placeholder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: hsla(353, 100%, 8%, 0.05);
+		color: var(--text-color-light);
+		font-size: 1.5rem;
+		filter: none;
 	}
 	.item-info {
 		flex: 1;
@@ -422,9 +435,6 @@
 	}
 
 	@media screen and (max-width: 1150px) {
-		.pb-mobile {
-			padding-bottom: 6rem;
-		}
 		.main {
 			padding-bottom: 4rem;
 		}

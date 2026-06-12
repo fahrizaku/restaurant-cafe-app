@@ -48,7 +48,13 @@
 </script>
 
 <article class="products__card">
-	<img src={image || '/img/product-1.png'} alt={name} class="products__img" />
+	<div class="card__media">
+		{#if image}
+			<img src={image} alt={name} class="card__photo" loading="lazy" />
+		{:else}
+			<i class="ri-restaurant-line card__placeholder" aria-hidden="true"></i>
+		{/if}
+	</div>
 
 	<div class="products__content">
 		<div class="products__info">
@@ -92,6 +98,7 @@
 
 	.products__card:hover {
 		transform: translateY(-0.25rem);
+		box-shadow: 0 12px 32px hsla(353, 100%, 8%, 0.16);
 	}
 
 	.products__content {
@@ -102,12 +109,29 @@
 		row-gap: 0.75rem;
 	}
 
-	.products__img {
-		width: 100px;
-		display: block;
-		margin: 0 auto 1rem;
-		filter: var(--shadow-small-img);
+	/* Area foto rasio tetap agar tinggi kartu seragam apa pun bentuk fotonya */
+	.card__media {
+		aspect-ratio: 1 / 1;
+		border-radius: 1rem;
+		overflow: hidden;
+		margin-bottom: 1rem;
+		background-color: hsla(353, 100%, 8%, 0.05);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.card__photo {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
 		transition: transform 0.4s;
+	}
+
+	.card__placeholder {
+		font-size: 2.5rem;
+		color: var(--text-color-light);
+		opacity: 0.5;
 	}
 
 	.products__name {
@@ -174,7 +198,7 @@
 		transform: scale(0.9);
 	}
 
-	.products__card:hover .products__img {
+	.products__card:hover .card__photo {
 		transform: scale(1.05);
 	}
 
@@ -263,10 +287,6 @@
 	@media screen and (min-width: 1150px) {
 		.products__card {
 			padding: 1.5rem;
-		}
-
-		.products__img {
-			width: 120px;
 		}
 
 		.products__price {

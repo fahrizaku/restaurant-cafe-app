@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
+	import PublicFooter from '$lib/components/PublicFooter.svelte';
 	import PaymentOptions from '$lib/components/PaymentOptions.svelte';
 	import { enhance } from '$app/forms';
 	import { formatRupiah } from '$lib/utils';
@@ -180,11 +181,18 @@
 						<div class="batch__items">
 							{#each batch.items as item}
 								<div class="batch__item">
-									<img
-										src={item.menu?.image ?? '/img/product-1.png'}
-										alt={item.menu?.name}
-										class="batch__item-img"
-									/>
+									{#if item.menu?.image}
+										<img
+											src={item.menu.image}
+											alt={item.menu.name}
+											class="batch__item-img"
+											loading="lazy"
+										/>
+									{:else}
+										<div class="batch__item-img batch__item-img--placeholder" aria-hidden="true">
+											<i class="ri-restaurant-line"></i>
+										</div>
+									{/if}
 									<div class="batch__item-info">
 										<p class="batch__item-name">{item.menu?.name ?? 'Unknown'}</p>
 										<p class="batch__item-qty">
@@ -309,17 +317,10 @@
 
 <MobileNav activeSessionId={session.id} />
 
-<footer class="footer pb-mobile">
-	<div class="footer__container container">
-		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
-	</div>
-</footer>
+<PublicFooter />
 
 <style>
 	@media screen and (max-width: 1150px) {
-		.pb-mobile {
-			padding-bottom: 6rem;
-		}
 		.main {
 			padding-bottom: 4rem;
 		}
@@ -465,6 +466,16 @@
 		border-radius: 0.75rem;
 		object-fit: cover;
 		filter: var(--shadow-small-img);
+		flex-shrink: 0;
+	}
+	.batch__item-img--placeholder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: hsla(353, 100%, 8%, 0.05);
+		color: var(--text-color-light);
+		font-size: 1.25rem;
+		filter: none;
 	}
 	.batch__item-info {
 		flex: 1;

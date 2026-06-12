@@ -49,8 +49,12 @@
 		bottom: 0;
 		left: 0;
 		width: 100%;
-		height: 4rem;
-		background-color: var(--body-color);
+		min-height: 4rem;
+		/* Ruang untuk home indicator iPhone */
+		padding-bottom: env(safe-area-inset-bottom);
+		background-color: hsla(24, 86%, 90%, 0.9);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
 		display: flex;
 		justify-content: space-around;
 		align-items: center;

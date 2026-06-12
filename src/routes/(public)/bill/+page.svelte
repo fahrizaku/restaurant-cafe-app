@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Navbar from '$lib/components/Navbar.svelte';
 	import MobileNav from '$lib/components/MobileNav.svelte';
+	import PublicFooter from '$lib/components/PublicFooter.svelte';
 
 	let { data } = $props();
 </script>
@@ -31,11 +32,7 @@
 
 <MobileNav />
 
-<footer class="footer pb-mobile">
-	<div class="footer__container container">
-		<span class="footer__copy">&#169; Semua Hak Dilindungi</span>
-	</div>
-</footer>
+<PublicFooter />
 
 <style>
 	.empty-state {
@@ -64,9 +61,6 @@
 	}
 
 	@media screen and (max-width: 1150px) {
-		.pb-mobile {
-			padding-bottom: 6rem;
-		}
 		.main {
 			padding-bottom: 4rem;
 		}
