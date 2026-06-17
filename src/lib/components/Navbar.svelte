@@ -23,7 +23,9 @@
 <header class="header" id="header" class:shadow-header={isShadowHeader}>
 	<nav class="nav container">
 		<a href="/menu" class="nav__logo">
-			<img src="/img/logo-pizza.svg" alt="logo" />
+			<span class="nav__logo__mark" aria-hidden="true">
+				<i class="ri-cup-line"></i>
+			</span>
 			{cafeName}
 		</a>
 

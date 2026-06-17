@@ -215,19 +215,21 @@
 		display: flex;
 		align-items: center;
 		column-gap: 0.5rem;
-		background-color: var(--container-color);
+		background-color: var(--first-color-soft);
+		border: 1px solid hsl(16, 70%, 90%);
 		padding: 0.75rem 1.25rem;
-		border-radius: 4rem;
+		border-radius: 0.875rem;
 		font-size: var(--small-font-size);
-		color: var(--text-color);
-		box-shadow: 0 4px 12px hsla(353, 100%, 8%, 0.08);
+		color: var(--first-color-dark);
 		width: fit-content;
+		max-width: 100%;
 		margin: 0 auto 1rem;
 		transition: background-color 0.3s;
 	}
 
 	.bill-banner:hover {
 		background-color: var(--first-color);
+		border-color: var(--first-color);
 		color: var(--white-color);
 	}
 
@@ -245,7 +247,7 @@
 		position: sticky;
 		top: var(--header-height);
 		z-index: 80; /* Lower than navbar but higher than content */
-		background-color: hsla(24, 86%, 88%, 0.95); /* Semi-transparent body color */
+		background-color: hsla(40, 33%, 97%, 0.9); /* Semi-transparent body color */
 		backdrop-filter: blur(8px);
 		padding-block: 0.75rem;
 		margin-bottom: 0.75rem;
@@ -255,16 +257,16 @@
 		display: flex;
 		align-items: center;
 		background-color: var(--container-color);
-		border-radius: 4rem;
-		box-shadow: 0 4px 12px hsla(353, 100%, 8%, 0.08);
+		border-radius: 0.875rem;
+		box-shadow: var(--shadow-sm);
 		overflow: hidden;
-		border: 2px solid transparent;
-		transition: border-color 0.4s, box-shadow 0.4s;
+		border: 1.5px solid var(--border-color);
+		transition: border-color 0.3s, box-shadow 0.3s;
 	}
 
 	.search-box:focus-within {
 		border-color: var(--first-color);
-		box-shadow: 0 4px 12px hsla(353, 93%, 50%, 0.2);
+		box-shadow: 0 0 0 3px var(--first-color-soft);
 	}
 
 	.search-icon-wrapper {
@@ -347,17 +349,16 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.5rem 1.25rem;
+		padding: 0.5rem 1.1rem;
 		background-color: var(--container-color);
-		border: 2px solid transparent;
-		border-radius: 4rem;
+		border: 1.5px solid var(--border-color);
+		border-radius: 0.75rem;
 		color: var(--text-color);
 		font-size: var(--small-font-size);
 		font-weight: var(--font-medium);
 		white-space: nowrap;
 		cursor: pointer;
-		transition: all 0.3s;
-		box-shadow: 0 4px 12px hsla(353, 100%, 8%, 0.08);
+		transition: all 0.25s;
 	}
 
 	.filter-btn i {
@@ -366,6 +367,7 @@
 
 	.filter-btn:hover {
 		border-color: var(--first-color);
+		color: var(--first-color);
 	}
 
 	.filter-btn.active {
@@ -390,8 +392,9 @@
 		padding: 3rem 2rem;
 		margin-top: 1.5rem;
 		background-color: var(--container-color);
-		border-radius: 1.5rem;
-		box-shadow: 0 4px 12px hsla(353, 100%, 8%, 0.08);
+		border: 1px solid var(--border-color);
+		border-radius: 1.25rem;
+		box-shadow: var(--shadow-sm);
 	}
 
 	.empty-icon {

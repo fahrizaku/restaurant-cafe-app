@@ -147,9 +147,10 @@
 <style>
 	.payment-card {
 		background-color: var(--container-color);
-		border-radius: 1.5rem;
+		border: 1px solid var(--border-color);
+		border-radius: 1.25rem;
 		padding: 1.5rem;
-		box-shadow: 0 4px 16px hsla(353, 100%, 8%, 0.06);
+		box-shadow: var(--shadow-md);
 		margin-bottom: 1.5rem;
 	}
 
@@ -195,9 +196,9 @@
 		align-items: center;
 		row-gap: 0.35rem;
 		padding: 0.85rem 0.5rem;
-		background-color: var(--body-color);
-		border: 2px solid transparent;
-		border-radius: 1rem;
+		background-color: hsl(30, 14%, 96%);
+		border: 1.5px solid var(--border-color);
+		border-radius: 0.875rem;
 		color: var(--text-color);
 		font-size: var(--small-font-size);
 		font-weight: var(--font-medium);
@@ -218,7 +219,7 @@
 	.payment-panel {
 		margin-top: 1rem;
 		padding-top: 1rem;
-		border-top: 1px dashed hsla(353, 16%, 32%, 0.2);
+		border-top: 1px solid var(--border-color);
 	}
 
 	.bank-info {
@@ -291,7 +292,7 @@
 	}
 
 	.transfer-form__file::file-selector-button {
-		background-color: var(--body-color);
+		background-color: hsl(30, 14%, 95%);
 		color: var(--title-color);
 		border: none;
 		border-radius: 0.5rem;

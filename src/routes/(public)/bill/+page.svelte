@@ -43,7 +43,7 @@
 	.empty-state__icon {
 		width: 80px;
 		height: 80px;
-		background-color: var(--container-color);
+		background-color: var(--first-color-soft);
 		color: var(--first-color);
 		font-size: 2.5rem;
 		display: flex;

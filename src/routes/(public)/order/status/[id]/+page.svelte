@@ -329,15 +329,15 @@
 	.bill-header {
 		background-color: var(--first-color);
 		padding: 1.5rem;
-		border-radius: 1.5rem;
+		border-radius: 1.25rem;
 		margin-bottom: 1.5rem;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		box-shadow: 0 8px 24px hsla(353, 100%, 40%, 0.3);
+		box-shadow: 0 10px 28px hsla(16, 72%, 40%, 0.22);
 	}
 	.bill-header__table {
-		color: hsla(24, 86%, 90%, 0.9);
+		color: hsla(0, 0%, 100%, 0.85);
 		font-size: var(--small-font-size);
 		display: flex;
 		align-items: center;
@@ -359,11 +359,11 @@
 		font-weight: var(--font-medium);
 	}
 	.badge--open {
-		background-color: hsla(24, 86%, 90%, 0.2);
+		background-color: hsla(0, 0%, 100%, 0.22);
 		color: var(--white-color);
 	}
 	.badge--processing {
-		background-color: hsla(24, 86%, 90%, 0.2);
+		background-color: hsla(0, 0%, 100%, 0.22);
 		color: var(--white-color);
 	}
 	.badge--paid {
@@ -380,12 +380,14 @@
 	.bill-header__total-label {
 		display: block;
 		font-size: var(--smaller-font-size);
-		color: hsla(24, 86%, 90%, 0.8);
+		color: hsla(0, 0%, 100%, 0.8);
 		margin-bottom: 0.25rem;
 	}
 	.bill-header__total-value {
 		font-family: var(--second-font);
 		font-size: var(--bigger-font-size);
+		font-weight: 800;
+		letter-spacing: -0.02em;
 		color: var(--white-color);
 	}
 	.batches {
@@ -396,9 +398,10 @@
 	}
 	.batch {
 		background-color: var(--container-color);
-		border-radius: 1.25rem;
+		border: 1px solid var(--border-color);
+		border-radius: 1rem;
 		overflow: hidden;
-		box-shadow: 0 4px 16px hsla(353, 100%, 8%, 0.06);
+		box-shadow: var(--shadow-sm);
 	}
 	.batch--cancelled {
 		opacity: 0.5;
@@ -408,7 +411,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: 1rem 1.25rem;
-		border-bottom: 1px solid hsla(353, 16%, 32%, 0.08);
+		border-bottom: 1px solid var(--border-color);
 	}
 	.batch__meta {
 		display: flex;
@@ -472,7 +475,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background-color: hsla(353, 100%, 8%, 0.05);
+		background-color: hsl(30, 14%, 95%);
 		color: var(--text-color-light);
 		font-size: 1.25rem;
 		filter: none;
@@ -498,6 +501,7 @@
 	.batch__item-total {
 		font-family: var(--second-font);
 		font-size: var(--small-font-size);
+		font-weight: 600;
 		color: var(--title-color);
 	}
 	.batch__footer {
@@ -505,7 +509,7 @@
 		justify-content: space-between;
 		align-items: center;
 		padding: 0.75rem 1.25rem;
-		border-top: 1px solid hsla(353, 16%, 32%, 0.08);
+		border-top: 1px solid var(--border-color);
 	}
 	.batch__subtotal {
 		font-size: var(--smaller-font-size);
@@ -514,14 +518,16 @@
 	.batch__subtotal-value {
 		font-family: var(--second-font);
 		font-size: var(--normal-font-size);
+		font-weight: 700;
 		color: var(--title-color);
 	}
 	.bill-summary {
 		background-color: var(--container-color);
+		border: 1px solid var(--border-color);
 		border-radius: 1.25rem;
 		padding: 1.25rem;
 		margin-bottom: 1.5rem;
-		box-shadow: 0 4px 16px hsla(353, 100%, 8%, 0.06);
+		box-shadow: var(--shadow-md);
 	}
 	.bill-summary__row {
 		display: flex;
@@ -535,10 +541,11 @@
 		justify-content: space-between;
 		font-family: var(--second-font);
 		font-size: var(--h2-font-size);
+		font-weight: 700;
 		color: var(--title-color);
 		padding-top: 0.75rem;
 		margin-top: 0.5rem;
-		border-top: 1px solid hsla(353, 16%, 32%, 0.1);
+		border-top: 1px solid var(--border-color);
 		margin-bottom: 1rem;
 	}
 	.bill-paid-badge {
@@ -574,7 +581,7 @@
 		font-size: var(--small-font-size);
 		font-weight: var(--font-medium);
 		color: var(--first-color);
-		background-color: hsla(353, 100%, 40%, 0.06);
+		background-color: var(--first-color-soft);
 		padding: 0.75rem 1.25rem;
 		border-radius: 0.75rem;
 		width: 100%;

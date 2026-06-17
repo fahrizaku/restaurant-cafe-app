@@ -52,15 +52,15 @@
 		min-height: 4rem;
 		/* Ruang untuk home indicator iPhone */
 		padding-bottom: env(safe-area-inset-bottom);
-		background-color: hsla(24, 86%, 90%, 0.9);
+		background-color: hsla(0, 0%, 100%, 0.85);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 		display: flex;
 		justify-content: space-around;
 		align-items: center;
 		z-index: 1000; /* Higher than var(--z-fixed) which is 100 */
-		box-shadow: 0 -4px 16px hsla(353, 100%, 8%, 0.1);
-		border-top: 1px solid var(--container-color);
+		box-shadow: 0 -2px 12px hsla(24, 20%, 12%, 0.05);
+		border-top: 1px solid var(--border-color);
 	}
 
 	.mobile-nav__item {

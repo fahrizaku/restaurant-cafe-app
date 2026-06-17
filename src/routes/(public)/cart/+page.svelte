@@ -217,7 +217,7 @@
 	.empty-cart__icon {
 		width: 80px;
 		height: 80px;
-		background-color: var(--container-color);
+		background-color: var(--first-color-soft);
 		color: var(--first-color);
 		font-size: 2.5rem;
 		display: flex;
@@ -246,8 +246,10 @@
 		align-items: center;
 		column-gap: 1rem;
 		background-color: var(--container-color);
+		border: 1px solid var(--border-color);
+		box-shadow: var(--shadow-sm);
 		padding: 1rem;
-		border-radius: 1.25rem;
+		border-radius: 1rem;
 		position: relative;
 	}
 	.item-img {
@@ -262,7 +264,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background-color: hsla(353, 100%, 8%, 0.05);
+		background-color: hsl(30, 14%, 95%);
 		color: var(--text-color-light);
 		font-size: 1.5rem;
 		filter: none;
@@ -279,8 +281,8 @@
 		padding-right: 1.75rem;
 	}
 	.item-price {
-		color: var(--first-color);
-		font-family: var(--second-font);
+		color: var(--title-color);
+		font-weight: 700;
 		margin-bottom: 0.75rem;
 	}
 	.item-controls {
@@ -291,7 +293,7 @@
 	.qty-btn {
 		display: inline-flex;
 		padding: 4px;
-		background-color: var(--body-color);
+		background-color: hsl(30, 14%, 95%);
 		border-radius: 0.5rem;
 		color: var(--title-color);
 		cursor: pointer;
@@ -310,8 +312,8 @@
 		margin-top: 0.75rem;
 		padding: 0.5rem 0.75rem;
 		border-radius: 0.5rem;
-		background-color: var(--body-color);
-		border: 1px solid transparent;
+		background-color: hsl(30, 14%, 96%);
+		border: 1px solid var(--border-color);
 		color: var(--title-color);
 		font-family: var(--body-font);
 		font-size: var(--smaller-font-size);
@@ -339,9 +341,10 @@
 
 	.cart-summary {
 		background-color: var(--container-color);
+		border: 1px solid var(--border-color);
 		padding: 1.5rem;
-		border-radius: 1.5rem;
-		box-shadow: 0 4px 16px hsla(353, 100%, 8%, 0.06);
+		border-radius: 1.25rem;
+		box-shadow: var(--shadow-md);
 	}
 	.summary-row {
 		display: flex;
@@ -355,10 +358,11 @@
 		justify-content: space-between;
 		font-family: var(--second-font);
 		font-size: var(--h2-font-size);
+		font-weight: 700;
 		color: var(--title-color);
 		margin-top: 0.5rem;
 		padding-top: 0.75rem;
-		border-top: 1px solid hsla(353, 16%, 32%, 0.1);
+		border-top: 1px solid var(--border-color);
 		margin-bottom: 1.5rem;
 	}
 
@@ -381,14 +385,15 @@
 		width: 100%;
 		padding: 0.75rem 1rem;
 		border-radius: 0.75rem;
-		background-color: var(--body-color);
-		border: 2px solid transparent;
+		background-color: hsl(30, 14%, 96%);
+		border: 1.5px solid var(--border-color);
 		color: var(--title-color);
 		font-family: var(--body-font);
-		transition: border-color 0.3s;
+		transition: border-color 0.3s, box-shadow 0.3s;
 	}
 	.text-input:focus {
 		border-color: var(--first-color);
+		box-shadow: 0 0 0 3px var(--first-color-soft);
 		outline: none;
 	}
 

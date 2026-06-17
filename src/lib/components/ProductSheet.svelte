@@ -106,7 +106,7 @@
 	.sheet-backdrop {
 		position: fixed;
 		inset: 0;
-		background-color: hsla(353, 100%, 8%, 0.45);
+		background-color: hsla(24, 30%, 8%, 0.45);
 		z-index: 1100;
 	}
 
@@ -116,9 +116,9 @@
 		left: 0;
 		right: 0;
 		z-index: 1101;
-		background-color: var(--body-color);
+		background-color: var(--container-color);
 		border-radius: 1.5rem 1.5rem 0 0;
-		box-shadow: 0 -8px 32px hsla(353, 100%, 8%, 0.25);
+		box-shadow: 0 -8px 32px hsla(24, 30%, 10%, 0.18);
 		max-height: 85dvh;
 		display: flex;
 		flex-direction: column;
@@ -129,7 +129,7 @@
 		width: 2.5rem;
 		height: 4px;
 		border-radius: 2px;
-		background-color: hsla(353, 16%, 32%, 0.25);
+		background-color: hsl(30, 12%, 85%);
 		margin: 0.75rem auto 0;
 		flex-shrink: 0;
 	}
@@ -144,7 +144,7 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: 50%;
-		background-color: var(--container-color);
+		background-color: hsl(30, 14%, 95%);
 		color: var(--title-color);
 		font-size: 1.25rem;
 		cursor: pointer;
@@ -159,7 +159,7 @@
 		aspect-ratio: 16 / 10;
 		border-radius: 1rem;
 		overflow: hidden;
-		background-color: hsla(353, 100%, 8%, 0.05);
+		background-color: hsl(30, 14%, 95%);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -186,7 +186,8 @@
 	.sheet__price {
 		display: block;
 		font-family: var(--second-font);
-		font-size: var(--h2-font-size);
+		font-size: var(--h3-font-size);
+		font-weight: 700;
 		color: var(--first-color);
 		margin-bottom: 0.75rem;
 	}
@@ -202,8 +203,8 @@
 		width: 100%;
 		padding: 0.75rem 1rem;
 		border-radius: 0.75rem;
-		background-color: var(--container-color);
-		border: 2px solid transparent;
+		background-color: hsl(30, 14%, 96%);
+		border: 1.5px solid var(--border-color);
 		color: var(--title-color);
 		font-family: var(--body-font);
 		font-size: var(--smaller-font-size);
@@ -224,7 +225,7 @@
 		align-items: center;
 		gap: 1rem;
 		padding: 0.75rem 1.25rem 1rem;
-		border-top: 1px solid hsla(353, 16%, 32%, 0.1);
+		border-top: 1px solid var(--border-color);
 		flex-shrink: 0;
 	}
 
@@ -241,7 +242,7 @@
 		align-items: center;
 		justify-content: center;
 		border-radius: 0.75rem;
-		background-color: var(--container-color);
+		background-color: hsl(30, 14%, 95%);
 		color: var(--title-color);
 		font-size: 1.25rem;
 		cursor: pointer;

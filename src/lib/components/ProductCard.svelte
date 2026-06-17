@@ -121,18 +121,23 @@
 	.products__card {
 		position: relative;
 		background-color: var(--container-color);
-		padding: 1.25rem 0.75rem;
-		border-radius: 1.5rem;
-		box-shadow: 0 8px 24px hsla(353, 100%, 8%, 0.1);
+		padding: 0.75rem;
+		border-radius: 1.125rem;
+		border: 1px solid var(--border-color);
+		box-shadow: var(--shadow-sm);
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		transition: transform 0.4s;
+		transition:
+			transform 0.25s,
+			box-shadow 0.25s,
+			border-color 0.25s;
 	}
 
 	.products__card:hover {
 		transform: translateY(-0.25rem);
-		box-shadow: 0 12px 32px hsla(353, 100%, 8%, 0.16);
+		border-color: transparent;
+		box-shadow: var(--shadow-md);
 	}
 
 	.products__card--clickable {
@@ -150,10 +155,10 @@
 	/* Area foto rasio tetap agar tinggi kartu seragam apa pun bentuk fotonya */
 	.card__media {
 		aspect-ratio: 1 / 1;
-		border-radius: 1rem;
+		border-radius: 0.75rem;
 		overflow: hidden;
-		margin-bottom: 1rem;
-		background-color: hsla(353, 100%, 8%, 0.05);
+		margin-bottom: 0.875rem;
+		background-color: hsl(30, 14%, 95%);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -173,23 +178,25 @@
 	}
 
 	.products__name {
-		font-size: var(--h3-font-size);
+		font-size: var(--normal-font-size);
+		font-weight: var(--font-semi-bold);
+		letter-spacing: -0.01em;
 		margin-bottom: 0.25rem;
 		word-break: break-word;
-		text-align: center;
+		text-align: left;
 	}
 
 	.products__description {
 		font-size: var(--smaller-font-size);
 		color: var(--text-color-light);
-		line-height: 1.4;
+		line-height: 1.45;
 		margin-bottom: 0.5rem;
 		display: -webkit-box;
 		line-clamp: 2;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
-		text-align: center;
+		text-align: left;
 	}
 
 	.products__footer {
@@ -202,9 +209,11 @@
 
 	.products__price {
 		font-family: var(--second-font);
-		font-size: var(--h2-font-size);
-		line-height: 120%;
-		color: var(--first-color);
+		font-size: var(--normal-font-size);
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		line-height: 1.2;
+		color: var(--title-color);
 		white-space: nowrap;
 	}
 
@@ -213,14 +222,13 @@
 	.products__button {
 		background-color: var(--first-color);
 		color: var(--white-color);
-		width: 32px;
-		height: 32px;
-		border-radius: 0.5rem;
+		width: 34px;
+		height: 34px;
+		border-radius: 0.625rem;
 		font-size: 1.25rem;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 4px 16px hsla(353, 100%, 40%, 0.4);
 		cursor: pointer;
 		transition:
 			background-color 0.4s,
@@ -241,16 +249,16 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 0.375rem;
-		background-color: var(--body-color);
+		background-color: hsl(30, 14%, 95%);
 		border-radius: 0.625rem;
-		padding: 2px;
+		padding: 3px;
 		flex-shrink: 0;
 	}
 
 	.stepper__btn {
 		position: relative; /* anchor partikel +1 */
-		width: 26px;
-		height: 26px;
+		width: 28px;
+		height: 28px;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -329,7 +337,7 @@
 		align-items: center;
 		justify-content: center;
 		font-size: 0.8rem;
-		box-shadow: 0 4px 10px hsla(353, 93%, 50%, 0.4);
+		box-shadow: 0 4px 10px hsla(16, 72%, 50%, 0.4);
 		animation: flyY 1.2s cubic-bezier(0.3, 0, 0.7, 1) forwards;
 		border: 1px solid rgba(255, 255, 255, 0.5);
 	}
@@ -367,16 +375,16 @@
 
 	@media screen and (min-width: 1150px) {
 		.products__card {
-			padding: 1.5rem;
+			padding: 1rem;
 		}
 
 		.products__price {
-			font-size: var(--h1-font-size);
+			font-size: var(--h3-font-size);
 		}
 
 		.products__button {
-			width: 36px;
-			height: 36px;
+			width: 38px;
+			height: 38px;
 			font-size: 1.5rem;
 		}
 	}
