@@ -217,7 +217,7 @@
 		white-space: nowrap;
 	}
 
-	/* template.css sudah memberi position: absolute (pojok kanan bawah kartu);
+	/* the public stylesheet already gives position: absolute (pojok kanan bawah kartu);
 	   itu sekaligus jadi anchor untuk partikel .plus-one */
 	.products__button {
 		background-color: var(--first-color);

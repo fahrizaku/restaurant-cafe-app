@@ -1,0 +1,71 @@
+/* Design tokens and minimal base styles for the public (customer) side. */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+	--header-height: 3.5rem;
+
+	/* Colors (HSL) */
+	--first-color: hsl(16, 72%, 50%);
+	--first-color-alt: hsl(16, 68%, 44%);
+	--first-color-dark: hsl(16, 40%, 20%);
+	--first-color-soft: hsl(16, 70%, 96%);
+	--title-color: hsl(24, 14%, 13%);
+	--text-color: hsl(24, 8%, 38%);
+	--text-color-light: hsl(24, 7%, 56%);
+	--white-color: hsl(0, 0%, 100%);
+	--body-color: hsl(40, 33%, 97%);
+	--container-color: hsl(0, 0%, 100%);
+	--border-color: hsl(30, 14%, 90%);
+	--shadow-small-img: drop-shadow(0 4px 12px hsla(24, 30%, 10%, 0.1));
+	--shadow-big-img: drop-shadow(0 10px 28px hsla(24, 30%, 10%, 0.12));
+	--shadow-sm: 0 1px 2px hsla(24, 20%, 12%, 0.06);
+	--shadow-md: 0 6px 20px hsla(24, 20%, 12%, 0.07);
+	--shadow-lg: 0 14px 36px hsla(24, 20%, 12%, 0.1);
+
+	/*========== Font and typography ==========*/
+	/*.5rem = 8px | 1rem = 16px ...*/
+	--body-font: 'Plus Jakarta Sans', system-ui, sans-serif;
+	--second-font: 'Plus Jakarta Sans', system-ui, sans-serif;
+	--biggest-font-size: 2.5rem;
+	--bigger-font-size: 1.5rem;
+	--h1-font-size: 1.5rem;
+	--h2-font-size: 1.25rem;
+	--h3-font-size: 1rem;
+	--normal-font-size: 0.938rem;
+	--small-font-size: 0.813rem;
+	--smaller-font-size: 0.75rem;
+	/*========== Font weight ==========*/
+	--font-regular: 400;
+	--font-medium: 500;
+	--font-semi-bold: 600;
+	/*========== z index ==========*/
+	--z-tooltip: 10;
+	--z-fixed: 100;
+}
+
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: var(--body-font);
+	font-size: var(--normal-font-size);
+	background-color: var(--body-color);
+	color: var(--text-color);
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* Tailwind v4 (admin.css) adds width:100% to .container — keep it explicit. */
+.container {
+	width: calc(100% - 2rem);
+	max-width: 1120px;
+	margin-inline: auto;
+}

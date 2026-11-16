@@ -156,7 +156,7 @@
 							{qty > 0 ? 'border-brand-300 dark:border-brand-500/50' : 'border-gray-200 dark:border-gray-800'}"
 					>
 						<img
-							src={menu.image ?? '/img/product-1.png'}
+							src={menu.image ?? '/placeholder.svg'}
 							alt={menu.name}
 							class="h-28 w-full object-cover"
 						/>

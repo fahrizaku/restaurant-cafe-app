@@ -246,7 +246,7 @@
 						{#each batch.items as item}
 							<div class="flex items-center gap-3 px-5 py-3">
 								<img
-									src={item.menu?.image ?? '/img/product-1.png'}
+									src={item.menu?.image ?? '/placeholder.svg'}
 									alt={item.menu?.name}
 									class="h-10 w-10 rounded-lg object-cover"
 								/>

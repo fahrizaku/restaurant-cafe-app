@@ -59,7 +59,7 @@
 							<tr class="border-b border-gray-100 last:border-0 dark:border-gray-800">
 								<td class="px-5 py-3">
 									<img
-										src={menu.image ?? '/img/product-1.png'}
+										src={menu.image ?? '/placeholder.svg'}
 										alt={menu.name}
 										class="h-10 w-10 rounded-lg object-cover"
 									/>

@@ -137,7 +137,7 @@
 								{i + 1}
 							</span>
 							<img
-								src={item.image ?? '/img/product-1.png'}
+								src={item.image ?? '/placeholder.svg'}
 								alt={item.name}
 								class="h-9 w-9 shrink-0 rounded-lg object-cover"
 							/>

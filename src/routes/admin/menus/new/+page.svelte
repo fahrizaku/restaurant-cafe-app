@@ -127,7 +127,7 @@
 						id="image"
 						name="image"
 						type="text"
-						placeholder="/img/product-1.png"
+						placeholder="/placeholder.svg"
 						class="focus:border-brand-300 focus:ring-brand-500/10 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:ring-3 focus:outline-none dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30"
 					/>
 				</div>
